@@ -282,39 +282,33 @@ of those (e.g. the "data" directory from an iOS Simulator instance).
    grandparent = os.path.dirname(parent)
    if input_name == "Application":
     if parent_name == "Bundle":
-     bundle_dir = parent
-     data_dir = os.path.join(grandparent, "Data")
+     bundle_dir = path
+     data_dir = os.path.join(grandparent, "Data", "Application")
      if os.path.isdir(os.path.realpath(data_dir)):
-      if self.has_uuids(bundle_dir) or self.has_uuids(data_dir):
+      if self._has_uuids(bundle_dir) or self._has_uuids(data_dir):
        self.min_ios = 8
        self.path = grandparent
     elif parent_name == "Data":
-     bundle_dir = os.path.join(grandparent, "Bundle")
-     data_dir = parent
+     bundle_dir = os.path.join(grandparent, "Bundle", "Application")
+     data_dir = path
      if os.path.isdir(os.path.realpath(bundle_dir)):
-      if self.has_uuids(data_dir) or self.has_uuids(bundle_dir):
+      if self._has_uuids(data_dir) or self._has_uuids(bundle_dir):
        self.min_ios = 8
        self.path = grandparent
-    if self.min_ios == None:
-     self.min_ios = 2
-     self.path = path
    elif input_name == "Bundle":
-    bundle_dir = path
-    data_dir = os.path.join(parent, "Data")
+    bundle_dir = os.path.join(path, "Application")
+    data_dir = os.path.join(parent, "Data", "Application")
     if os.path.isdir(os.path.realpath(data_dir)):
-     if self.has_uuids(bundle_dir) or self.has_uuids(data_dir):
+     if self._has_uuids(bundle_dir) or self._has_uuids(data_dir):
       self.min_ios = 8
       self.path = parent
    elif input_name == "Data":
-    bundle_dir = os.path.join(parent, "Bundle")
-    data_dir = path
+    bundle_dir = os.path.join(parent, "Bundle", "Application")
+    data_dir = os.path.join(path, "Application")
     if os.path.isdir(os.path.realpath(bundle_dir)):
-     if self.has_uuids(data_dir) or self.has_uuids(bundle_dir):
+     if self._has_uuids(data_dir) or self._has_uuids(bundle_dir):
       self.min_ios = 8
       self.path = parent
-   if self.min_ios == None:
-    self.min_ios = 2
-    self.path = path
   if self.min_ios == None:
    self.min_ios = 2
    self.path = path
