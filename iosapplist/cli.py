@@ -35,26 +35,27 @@ usage = """Usage: appbackup [options] command [args]
 List iOS App Store apps.
 
 Options:
- -j / --json     Output (and shell input) should be a JSON document.
- -p / --plist    Output (and shell input) should be an XML property list.
- --root          The path to the directory containing app containers or
-                 a mobile home directory (defaults to "/var/mobile").
+ -j / --json        Output (and shell input) should be a JSON document.
+ -p / --plist       Output (and shell input) should be an XML property list.
+ --root             The path to the directory containing app containers or
+                    a mobile home directory (defaults to "/var/mobile").
 
 Commands:
- -h / --help     Display this help information and exit.
- list [<app>]    Shows information about one or more App Store apps (all apps
-                 if <app> is omitted).
- shell           Start an interactive shell.
- python-repl     Start an interactive Python prompt with an appbackup object.
+ -h / --help        Display this help information and exit.
+ list [<app>]       Shows information about one or more App Store apps (all apps
+                    if <app> is omitted).
+ get <key> [<app>]  Show a specific property key for one or more App Store apps.
+ shell              Start an interactive shell.
+ python-repl        Start an interactive Python prompt with an appbackup object.
 
 Arguments for all commands:
- -a / --all      Perform the specified action on all App Store apps (not needed
-                 for list).
- -u / --uuid     A UUID is given as <app> instead of a bundle ID.
- <app>           The bundle IDs (or UUIDs if -u / --uuid is set) for each app
-                 you want to work with.
- -v / --verbose  Show more information for each app (implied when <app> is
-                 given.)"""
+ -a / --all         Perform the specified action on all App Store apps (not needed
+                    for list).
+ -u / --uuid        A UUID is given as <app> instead of a bundle ID.
+ <app>              The bundle IDs (or UUIDs if -u / --uuid is set) for each app
+                    you want to work with.
+ -v / --verbose     Show more information for each app (implied when <app> is
+                    given.)"""
 
 import code
 import os
@@ -76,6 +77,8 @@ from applist import *
 from container import ContainerRoot
 from util import *
 
+app_info_keys = ("friendly", "bundle_id", "bundle_uuid", "data_uuid",
+                 "bundle_path", "data_path", "useable", "found")
 def app_info(app, human_readable=False, verbose=True, found_key=True):
  info = dict(friendly=app.friendly, bundle_id=app.bundle_id,
              bundle_uuid=app.containers.bundle.uuid,
@@ -197,6 +200,61 @@ def run_cmd(cmd, args, applist, out_mode):
     if not i.useable: info = "(not useable)"
     safe_print(u"%s (%s)" % (i.friendly, (i.bundle_id if i.useable else i)))
   return 0
+ elif cmd == "get":
+  use_uuid = "u" in args or "uuid" in args or ("g" in args or "guid" in args)
+  all_apps = not len(args[""]) or "a" in args or "all" in args
+  apps = args[""]
+  key, apps = apps[0] if len(apps) else "", apps[1:]
+  success = True
+  data = []
+  help_mode = "h" in args or "help" in args or key in ("help", "?")
+  help_mode = help_mode or "k" in args or "keys" in args
+  if help_mode:
+   if out_mode: data = app_info_keys[:]
+   else:
+    for i in sorted(app_info_keys):
+     safe_print(i)
+  else:
+   if not len(apps) and not all_apps:
+    error = "Please specify one or more apps, or set -a / --all."
+    if out_mode: print fmt_result(out_mode, cmd, False, 2, data=error)
+    else: safe_print(error)
+    return 2
+   elif not key:
+    error = "Please specify a key, or use -h / --help / -k / --keys for a list."
+    if out_mode: print fmt_result(out_mode, cmd, False, 2, data=error)
+    else: safe_print(error)
+    return 2
+   try:
+    if all_apps:
+     # List all apps
+     apps = applist.find_all().sorted()
+     for app in apps:
+      info = app_info(app, verbose=True)[key]
+      if out_mode: data += [info]
+      else: safe_print(info)
+    else:
+     # List some apps
+     search_mode = "uuid" if use_uuid else "bundle_id"
+     for i in apps:
+      app = applist.find(i, search_mode)
+      if app:
+       info = app_info(app, verbose=True)[key]
+       if out_mode: data += [info]
+       else: safe_print(info)
+      else:
+       success = False
+       if out_mode: data += [dict(name=i, found=False)]
+       else: safe_print("Could not find app %s.\n" % repr(i))
+   except KeyError:
+    error = "%s is not a valid key.  Use -h / --help / -k / --keys for a list."
+    error = error % repr(key)
+    if out_mode: print fmt_result(out_mode, cmd, False, 2, data=error)
+    else: safe_print(error)
+    return 2
+  if out_mode: print fmt_result(out_mode, cmd, success, int(not success),
+                                data=data)
+  return int(not success)
  elif cmd == "list" and ("v" in args or "verbose" in args or len(args[""])):
   # Show verbose app info
   use_uuid = "u" in args or "uuid" in args or ("g" in args or "guid" in args)
