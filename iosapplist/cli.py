@@ -207,6 +207,7 @@ def run_cmd(cmd, args, applist, out_mode):
   all_apps = not len(args[""]) or "a" in args or "all" in args
   apps = args[""]
   key, apps = apps[0] if len(apps) else "", apps[1:]
+  if not out_mode: key = key.replace("-", "_")
   success = True
   data = []
   help_mode = "h" in args or "help" in args or key in ("help", "?")
@@ -215,7 +216,7 @@ def run_cmd(cmd, args, applist, out_mode):
    if out_mode: data = app_info_keys[:]
    else:
     for i in sorted(app_info_keys):
-     safe_print(i)
+     safe_print(i.replace("_", "-"))
   else:
    if not len(apps) and not all_apps:
     error = "Please specify one or more apps, or set -a / --all."
