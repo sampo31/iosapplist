@@ -32,7 +32,7 @@
 
 usage = """Usage: appbackup [options] command [args]
 
-Backs up and restores saved data and settings from iOS App Store apps.
+List iOS App Store apps.
 
 Options:
  -j / --json     Output (and shell input) should be a JSON document.
