@@ -42,6 +42,7 @@ Options:
 
 Commands:
  -h / --help        Display this help information and exit.
+ --version          Display the version number and codename, and then exit.
  list [<app>]       Shows information about one or more App Store apps (all apps
                     if <app> is omitted).
  get <key> [<app>]  Show a specific property key for one or more App Store apps.
@@ -128,6 +129,12 @@ def main(argv=sys.argv):
   safe_print("Please choose only one or neither of -j / --json or -p /"
              " --plist.")
   return 2
+ if "version" in opts:
+  from . import __version__, codename
+  out = (__version__, codename)
+  if out_mode: print fmt_result(out_mode, cmd, True, 0, out)
+  else: safe_print('%s "%s"' % out)
+  return 0
  root = ContainerRoot(opts.get("root", "/var/mobile"))
  applist = AppList(root=root)
  return run_cmd(cmd, args, applist, out_mode)
