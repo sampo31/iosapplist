@@ -1,6 +1,5 @@
-# AppBackup
-# An iOS application that backs up and restores the saved data and
-# preferences of App Store apps.
+# iosapplist
+# A Python package that lists iOS App Store apps.  (Formerly part of AppBackup.)
 #
 # Copyright (C) 2008-2014 Scott Zeid
 # https://s.zeid.me/projects/appbackup/
@@ -33,7 +32,7 @@
 from __future__ import with_statement
 
 __author__  = "Scott Zeid <s@zeid.me>"
-__version__ = "3.0"
+__version__ = "3.0.dev1"
 
 from applist import AppList, AppListError
 
