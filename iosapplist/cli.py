@@ -128,7 +128,7 @@ def main(argv=sys.argv):
              " --plist.")
   return 2
  applist = AppList(root=root)
- run_cmd(cmd, args, applist, out_mode)
+ return run_cmd(cmd, args, applist, out_mode)
 
 def shell(args, applist, out_mode):
  build = ""
