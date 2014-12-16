@@ -215,7 +215,7 @@ def run_cmd(cmd, args, applist, out_mode):
    # List some apps
    search_mode = "uuid" if use_uuid else "bundle_id"
    for i in apps:
-    app = applist.find_app(i, search_mode)
+    app = applist.find(i, search_mode)
     if app:
      if out_mode: data += [app_info(app, verbose=verbose)]
      else: safe_print(app_info(app, True) + "\n")
