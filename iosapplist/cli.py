@@ -30,7 +30,7 @@
 
 """A command-line utility to list iOS App Store apps."""
 
-usage = """Usage: appbackup [options] command [args]
+usage = """Usage: iosapplist [options] command [args]
 
 List iOS App Store apps.
 
@@ -48,7 +48,7 @@ Commands:
                     Use -h / --help / -k / --keys / ? / help as the key for a
                     list of keys.
  shell              Start an interactive shell.
- python-repl        Start an interactive Python prompt with an appbackup object.
+ python-repl        Start an interactive Python prompt with an applist object.
 
 Arguments for all commands:
  -a / --all         Perform the specified action on all App Store apps (not
@@ -192,7 +192,7 @@ def run_cmd(cmd, args, applist, out_mode):
   return python_repl(args, applist)
  if (cmd == "list" and
      "v" not in args and "verbose" not in args and not len(args[""])):
-  # List App Store apps and their backup statuses
+  # List App Store apps
   apps = applist.find_all().sorted()
   if out_mode:
    data = [app_info(app, verbose=False, found_key=False) for app in apps]
