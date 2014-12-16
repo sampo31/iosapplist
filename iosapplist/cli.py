@@ -124,11 +124,11 @@ def main(argv=sys.argv):
  use_json = "j" in opts or "json" in opts
  use_plist = "p" in opts or "plist" in opts
  out_mode = ("json" if use_json else "plist") if use_json or use_plist else ""
- root = ContainerRoot(opts.get("root", "/var/mobile"))
  if use_json and use_plist:
   safe_print("Please choose only one or neither of -j / --json or -p /"
              " --plist.")
   return 2
+ root = ContainerRoot(opts.get("root", "/var/mobile"))
  applist = AppList(root=root)
  return run_cmd(cmd, args, applist, out_mode)
 
