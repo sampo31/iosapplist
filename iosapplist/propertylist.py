@@ -39,7 +39,7 @@ import CFPropertyList
 class PropertyListError(Exception): pass
 
 def load(filename):
- """Reads a binary or XML plist from the given file name and returns the resulting dictionary."""
+ """Reads a binary or XML plist from the given file name and returns its value."""
  cfplist = CFPropertyList.CFPropertyList(filename)
  cfplist.load()
  if cfplist.value != None:
@@ -52,5 +52,5 @@ def load(filename):
                            " list file")
 
 def save(value, filename):
- """Writes a dictionary to an XML plist with the give file name."""
+ """Writes a valid value for a plist as an XML plist with the given file name."""
  plistlib.writePlist(value, filename)

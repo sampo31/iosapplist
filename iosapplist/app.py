@@ -56,8 +56,9 @@ Attributes:
  sort_key:  useful for sorting
  useable:   True if the app can be accessed; False otherwise
 
-sort_key is the friendly name, converted to lowercase, with diacritical marks
-stripped using strip_latin_diacritics, an underscore, and the bundle name.
+sort_key is the app's friendly name, converted to lowercase, with diacritical
+marks stripped using util.strip_latin_diacritics(), an underscore, and then the
+app's bundle ID.
 Example:  facebook_com.facebook.Facebook
 
 On iOS <= 7.x, containers.bundle and containers.data will be the same object,

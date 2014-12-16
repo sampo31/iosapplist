@@ -208,12 +208,12 @@ apps.
                         *self.app_args, **self.app_kwargs)
     except AppError:
      del index_by_bundle_id[app.bundle_id]
-     bundle_id = getattr(app.containers.bundle, "uuid", None)
-     data_id   = getattr(app.containers.data, "uuid", None)
-     if bundle_id:
-      del index_by_uuid[app.containers.bundle.uuid.upper()]
-     if data_id and data_id != bundle_id:
-      del index_by_uuid[app.containers.data.uuid.upper()]
+     bundle_uuid = getattr(app.containers.bundle, "uuid", "").upper()
+     data_uuid   = getattr(app.containers.data,   "uuid", "").upper()
+     if bundle_uuid:
+      del index_by_uuid[bundle_uuid]
+     if data_uuid and data_uuid != bundle_uuid:
+      del index_by_uuid[data_uuid]
      continue
    apps = [app for app in apps if app]
   else:
@@ -245,9 +245,14 @@ apps.
   """Returns an iterator that yields each app in the cache sorted according to key.
 
 key is either a string that tells which App attribute should be used as a sort
-key, or a callable that is passed an App and returns a sort key.
+key, or a callable that is passed an App and returns a sort key.  The default is
+"sort_key" (the app's friendly name, converted to lowercase, with diacritical
+marks stripped using util.strip_latin_diacritics(), an underscore, and then the
+app's bundle ID).
 
 """
   l = self.__cache["as_list"] if self else []
-  if callable(key): return sorted(l, key=key)
-  else: return sorted(l, key=lambda app: getattr(app, key))
+  if callable(key):
+   return sorted(l, key=key)
+  else:
+   return sorted(l, key=lambda app: getattr(app, key))
