@@ -29,7 +29,7 @@
 
 # Command-line interface
 
-"""A command-line interface to AppBackup."""
+"""A command-line utility to list iOS App Store apps."""
 
 usage = """Usage: appbackup [options] command [args]
 
@@ -40,18 +40,11 @@ Options:
  -p / --plist    Output (and shell input) should be an XML property list.
  --root          The path to the directory containing app containers or
                  a mobile home directory (defaults to "/var/mobile").
- --config-dir    The path to the AppBackup configuration directory (defaults
-                 to "<container-root>/../Library/Preferences/AppBackup").
 
 Commands:
  -h / --help     Display this help information and exit.
  list [<app>]    Shows information about one or more App Store apps (all apps
                  if <app> is omitted).
- backup <app>    Back up the specified app's data.
- restore <app>   Restore the specified app's data.
- delete <app>    Delete the specified app's backup.
- ignore <app>    Ignore the specified app.
- unignore <app>  Stop ignoring the specified app.
  shell           Start an interactive shell.
  python-repl     Start an interactive Python prompt with an appbackup object.
 
@@ -80,34 +73,28 @@ try:
 except ImportError:
  import simplejson as json
 
-from appbackup import *
+from applist import *
 from container import ContainerRoot
-from justifiedbool import *
 from util import *
 
 def app_info(app, human_readable=False, verbose=True, found_key=True):
  info = dict(friendly=app.friendly, bundle_id=app.bundle_id,
              bundle_uuid=app.containers.bundle.uuid,
              data_uuid=app.containers.data.uuid,
-             useable=app.useable, ignored=app.ignored,
-             backup_time=app.backup_time_str)
+             useable=app.useable)
  if verbose or human_readable:
   info["bundle_path"] = app.containers.bundle.path
   info["data_path"] = app.containers.data.path
  if found_key:
   info["found"] = True
  if human_readable:
-  if not info["backup_time"]: info["backup_time"] = "(not backed up)"
-  info["ignored"] = "Yes" if info["ignored"] else "No"
   info["useable"] = "Yes" if info["useable"] else "No"
   tpl = u"""$friendly ($bundle_id):
     Bundle container path:  $bundle_path
     Bundle container UUID:  $bundle_uuid
       Data container path:  $data_path
       Data container UUID:  $data_uuid
-                  Useable:  $useable
-              Backup time:  $backup_time
-                  Ignored:  $ignored"""
+                  Useable:  $useable"""
   return Template(tpl).substitute(info)
  else:
   return info
@@ -134,16 +121,14 @@ def main(argv):
  use_plist = "p" in opts or "plist" in opts
  out_mode = ("json" if use_json else "plist") if use_json or use_plist else ""
  root = ContainerRoot(opts.get("root", "/var/mobile"))
- default_config_dir = (root.path, "..", "Library", "Preferences", "AppBackup")
- config_dir = opts.get("config-dir", os.path.join(*default_config_dir))
  if use_json and use_plist:
   safe_print("Please choose only one or neither of -j / --json or -p /"
              " --plist.")
   return 2
- appbackup = AppBackup(find_apps=False, config_dir=config_dir, apps_root=root)
- run_cmd(cmd, args, appbackup, out_mode)
+ applist = AppList(root=root)
+ run_cmd(cmd, args, applist, out_mode)
 
-def shell(args, appbackup, out_mode):
+def shell(args, applist, out_mode):
  build = ""
  while True:
   try:
@@ -161,14 +146,14 @@ def shell(args, appbackup, out_mode):
     _, cmd, args = parse_argv(shlex.split(line))
    if cmd == "exit":
     return 0
-   run_cmd(cmd, args, appbackup, out_mode)
+   run_cmd(cmd, args, applist, out_mode)
   except EOFError:
    return 0
   except Exception, exc:
    traceback.print_exc(exc)
  return 0
 
-def python_repl(args, appbackup):
+def python_repl(args, applist):
  def _make_scope():
   src_scope = globals()
   scope = dict([(k, src_scope[k]) for k in src_scope
@@ -190,33 +175,28 @@ def python_repl(args, appbackup):
   return "\n".join("".join(banner).rstrip().splitlines()[:-1]) + "\n"
  scope  = _make_scope()
  ps1    = getattr(sys, "ps1", None) or ">>> "
- usage  = ps1 + "appbackup = AppBackup(find_apps=False)\n"
+ usage  = ps1 + "applist = AppList(root=%s)\n" % repr(applist.root.path)
  banner = "\n".join((_console_banner(), usage))
- scope["appbackup"] = appbackup
+ scope["applist"] = applist
  code.interact(banner, None, scope)
  return 0
 
-def run_cmd(cmd, args, appbackup, out_mode):
+def run_cmd(cmd, args, applist, out_mode):
  if cmd == "shell":
-  return shell(args, appbackup, out_mode)
+  return shell(args, applist, out_mode)
  if cmd == "python-repl":
-  return python_repl(args, appbackup)
+  return python_repl(args, applist)
  if (cmd == "list" and
      "v" not in args and "verbose" not in args and not len(args[""])):
   # List App Store apps and their backup statuses
-  apps = appbackup.sort_apps()
+  apps = applist.find_all().sorted()
   if out_mode:
    data = [app_info(app, verbose=False, found_key=False) for app in apps]
    print fmt_result(out_mode, cmd, True, data=data)
   else:
    for i in apps:
-    info = i.backup_time_str
-    if not info:
-     if not i.useable: info = "(not useable)"
-     else: info = "(not backed up)"
-    if i.ignored: info = (info + " (ignored)").lstrip()
-    safe_print(u"%s (%s): %s" % (i.friendly, (i.bundle_id if i.useable else i),
-                                 info))
+    if not i.useable: info = "(not useable)"
+    safe_print(u"%s (%s)" % (i.friendly, (i.bundle_id if i.useable else i)))
   return 0
  elif cmd == "list" and ("v" in args or "verbose" in args or len(args[""])):
   # Show verbose app info
@@ -228,7 +208,7 @@ def run_cmd(cmd, args, appbackup, out_mode):
   data = []
   if all_apps:
    # List all apps
-   apps = appbackup.sort_apps()
+   apps = applist.find_all().sorted()
    for app in apps:
     if out_mode: data += [app_info(app, verbose=verbose)]
     else: safe_print(app_info(app, True) + "\n")
@@ -236,7 +216,7 @@ def run_cmd(cmd, args, appbackup, out_mode):
    # List some apps
    search_mode = "uuid" if use_uuid else "bundle_id"
    for i in apps:
-    app = appbackup.find_app(i, search_mode)
+    app = applist.find_app(i, search_mode)
     if app:
      if out_mode: data += [app_info(app, verbose=verbose)]
      else: safe_print(app_info(app, True) + "\n")
@@ -247,59 +227,6 @@ def run_cmd(cmd, args, appbackup, out_mode):
   if out_mode: print fmt_result(out_mode, cmd, success, int(not success),
                                 data=data)
   return int(not success)
- elif cmd in ("backup", "restore", "delete", "ignore", "unignore"):
-  # Other commands
-  use_uuid = "u" in args or "uuid" in args or ("g" in args or "guid" in args)
-  all_apps = "a" in args or "all" in args
-  verbose  = "v" in args or "verbose" in args
-  apps = args[""]
-  if not len(apps) and not all_apps:
-   error = "Please specify one or more apps, or set -a / --all."
-   if out_mode: print fmt_result(out_mode, cmd, False, 2, data=error)
-   else: safe_print(error)
-   return 2
-  success = True
-  exit_code = 0
-  errors = []
-  data = []
-  if all_apps:
-   # All apps
-   result = getattr(appbackup, cmd + "_all")()
-   if result.all: success = True
-   else:
-    success = False
-    exit_code = int(not result.any)
-    errors = [u"%s: %s" % (i.friendly, result[i].reason) for i in result
-              if not result[i]]
-  else:
-   # Not all apps
-   search_mode = "uuid" if use_uuid else "bundle_id"
-   for i in apps:
-    app = appbackup.find_app(i, search_mode)
-    if app:
-     try:
-      getattr(app, cmd)()
-      result = True
-     except AppBackupError, error:
-      result = JustifiedBool(False, str(error))
-    else:
-     result = JustifiedBool(False, "Could not find app %s." % repr(i))
-    data += [app_info(app, verbose=verbose)]
-    if not result:
-     success = False
-     errors += [u"%s: %s" % (app.friendly if app else i, result.reason)]
-   if len(apps) == 1 and not success: exit_code = 1
-  errors_str = "\n".join(errors)
-  if out_mode: print fmt_result(out_mode, cmd, success, exit_code, errors_str,
-                                apps=data)
-  elif errors_str: safe_print(errors_str)
-  return exit_code
- elif cmd == "starbucks":
-  # STARBUCKS!!!!!111!11!!!one!!1!
-  starbucks = appbackup.starbucks()
-  if out_mode: print fmt_result(out_mode, cmd, True, 0, starbucks)
-  else: safe_print(starbucks)
-  return 0
  else:
   # Invalid command
   error = "%s is not a valid command." % repr(cmd)
