@@ -45,12 +45,14 @@ Commands:
  list [<app>]       Shows information about one or more App Store apps (all apps
                     if <app> is omitted).
  get <key> [<app>]  Show a specific property key for one or more App Store apps.
+                    Use -h / --help / -k / --keys / ? / help as the key for a
+                    list of keys.
  shell              Start an interactive shell.
  python-repl        Start an interactive Python prompt with an appbackup object.
 
 Arguments for all commands:
- -a / --all         Perform the specified action on all App Store apps (not needed
-                    for list).
+ -a / --all         Perform the specified action on all App Store apps (not
+                    needed for list).
  -u / --uuid        A UUID is given as <app> instead of a bundle ID.
  <app>              The bundle IDs (or UUIDs if -u / --uuid is set) for each app
                     you want to work with.
