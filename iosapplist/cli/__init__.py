@@ -1,8 +1,5 @@
-#!/bin/sh
-
-# AppBackup
-# An iOS application that backs up and restores the saved data and
-# preferences of App Store apps.
+# iosapplist
+# A Python package that lists iOS App Store apps.  (Formerly part of AppBackup.)
 #
 # Copyright (C) 2008-2014 Scott Zeid
 # https://s.zeid.me/projects/appbackup/
@@ -29,7 +26,11 @@
 # shall not be used in advertising or otherwise to promote the sale, use or
 # other dealings in this Software without prior written authorization.
 
-# CLI wrapper for the source distribution
+# CLI __init__.py file
+# (No shit, Sherlock.)
 
-export PYTHONPATH="$(dirname "$0"):$PYTHONPATH"
-exec python -m iosapplist "$@"
+from __future__ import with_statement
+
+from __main__ import main
+
+__all__ = ["main"]

@@ -76,9 +76,9 @@ try:
 except ImportError:
  import simplejson as json
 
-from applist import *
-from container import ContainerRoot
-from util import *
+from ..applist import *
+from ..container import ContainerRoot
+from ..util import *
 
 app_info_keys = ("friendly", "bundle_id", "bundle_uuid", "data_uuid",
                  "bundle_path", "data_path", "useable", "found")
