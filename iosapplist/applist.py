@@ -32,10 +32,9 @@ from __future__ import with_statement
 
 import os
 
-import propertylist
-
 from app import AppError, App
 from container import ContainerError, Container, ContainerRoot
+from util import propertylist
 from util import *
 
 __all__ = ["AppListError", "AppList"]

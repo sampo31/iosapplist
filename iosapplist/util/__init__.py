@@ -29,7 +29,13 @@
 
 # Utility classes and functions
 
-__all__ = ["escape_utf8", "safe_print", "strip_latin_diacritics", "to_unicode"]
+from __future__ import with_statement
+
+import propertylist
+
+
+__all__  = ["escape_utf8", "safe_print", "strip_latin_diacritics", "to_unicode"]
+__all__ += ["propertylist"]
 
 
 # Table of Latin Diacritical Marks
