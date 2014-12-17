@@ -207,13 +207,13 @@ apps.
      app = app.__init__(app.containers.bundle, app.containers.data,
                         *self.app_args, **self.app_kwargs)
     except AppError:
-     del index_by_bundle_id[app.bundle_id]
+     index_by_bundle_id.pop(app.bundle_id, None)
      bundle_uuid = getattr(app.containers.bundle, "uuid", "").upper()
      data_uuid   = getattr(app.containers.data,   "uuid", "").upper()
      if bundle_uuid:
-      del index_by_uuid[bundle_uuid]
+      index_by_uuid.pop(bundle_uuid, None)
      if data_uuid and data_uuid != bundle_uuid:
-      del index_by_uuid[data_uuid]
+      index_by_uuid.pop(data_uuid, None)
      continue
    apps = [app for app in apps if app]
   else:
