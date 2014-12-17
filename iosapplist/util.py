@@ -31,6 +31,7 @@
 
 __all__ = ["escape_utf8", "safe_print", "strip_latin_diacritics", "to_unicode"]
 
+
 # Table of Latin Diacritical Marks
 # These were taken from the "Letters with diacritics" section of the Wikipedia
 # article, "List of Latin Letters"
@@ -59,6 +60,7 @@ LATIN_DIACRITICS_TABLE = {
  "x": u"ẍẋᶍ", "y": u"ýỳŷẙÿỹẏȳỷỵɏƴ", "z": u"źẑžżẓẕƶᵶᶎȥʐʑɀⱬǯᶚƺꝣ"
 }
 
+
 def escape_utf8(s):
  """Escapes UTF-8 characters; there's probably a much simpler way to do this."""
  r = repr(s.encode("utf8", "replace"))
@@ -69,10 +71,12 @@ def escape_utf8(s):
    return r[1:-1]
  return r
 
+
 def safe_print(s):
  """Prints the given string, compensating for Unicode errors."""
  try: print s
  except UnicodeError: print strip_latin_diacritics(s).encode("ascii", "replace")
+
 
 def strip_latin_diacritics(s):
  """Strip diacritical marks from Latin letters.
@@ -89,6 +93,7 @@ from Wikipedia.
   for i in LATIN_DIACRITICS_TABLE[letter]:
    ret = ret.replace(i, letter)
  return ret
+
 
 def to_unicode(s, encoding="utf8", errors="strict"):
  if isinstance(s, unicode):
