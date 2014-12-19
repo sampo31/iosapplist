@@ -39,7 +39,7 @@ __all__ = ["error", "normal"]
 class OutputCommand(Command):
  """Used internally by some commands."""
  
- name = ["<fill-this-in>"]
+ names = ["<fill-this-in>"]
  sort_group = float("-inf")
  add_args = False
  
