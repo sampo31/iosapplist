@@ -41,7 +41,7 @@ try:
 except ImportError:
  import simplejson as json
 
-from ...util import *
+from ...util import safe_print
 
 import output
 
