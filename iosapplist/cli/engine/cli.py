@@ -59,6 +59,7 @@ def make_CLI_class():
      for supercls in cls.__mro__[1:]:
       if issubclass(supercls, base.cls):
        cls.commands = supercls.commands.copy()
+       break
     if cls.commands is None:
      cls.commands = CommandList()
      cls.commands.register(commands)
