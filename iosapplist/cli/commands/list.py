@@ -26,7 +26,7 @@
 # shall not be used in advertising or otherwise to promote the sale, use or
 # other dealings in this Software without prior written authorization.
 
-# Command class
+# list command
 
 from __future__ import with_statement
 
