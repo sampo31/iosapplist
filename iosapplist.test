@@ -33,4 +33,4 @@
 
 export PYTHONPATH="$(dirname "$0"):$PYTHONPATH"
 export PYTHONDONTWRITEBYTECODE=x
-exec python -B -m iosapplist "$@"
+exec python -m iosapplist "$@"
