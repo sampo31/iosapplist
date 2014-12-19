@@ -240,14 +240,13 @@ each other and should have the ContainerClass LEGACY.
  
  def iteritems(self):
   types = (basestring, int, long, float, list, tuple, bool, None.__class__)
-  for cls in self.__class__.__mro__:
-   for attr in cls.__slots__:
-    if not attr.startswith("_"):
-     value = getattr(self, attr)
-     if isinstance(value, types):
-      yield (attr, value)
-   if cls == App:
-    break
+  for cls in reversed(self.__class__.__mro__):
+   if issubclass(cls, App):
+    for attr in cls.__slots__:
+     if not attr.startswith("_"):
+      value = getattr(self, attr)
+      if isinstance(value, types):
+       yield (attr, value)
   raise StopIteration
  
  def iterkeys(self):
