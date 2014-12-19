@@ -220,11 +220,11 @@ each other and should have the ContainerClass LEGACY.
    info += ":\n"
    for attr, value in self.iteritems():
     if attr not in ("bundle_id", "friendly", "sort_key"):
-     name = self.slot_names().get(attr, attr)
-     
-     if len(name) < padding:
-      name = ((" " * padding) + name)[-padding:]
-     info += u"%s:  %s\n" % (name, to_unicode(value))
+     name = self.slot_names().get(attr, None)
+     if name:
+      if len(name) < padding:
+       name = ((" " * padding) + name)[-padding:]
+      info += u"%s:  %s\n" % (name, to_unicode(value))
   return info
  
  # Dict-alike methods
