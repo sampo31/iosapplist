@@ -32,4 +32,5 @@
 # CLI wrapper for the source distribution
 
 export PYTHONPATH="$(dirname "$0"):$PYTHONPATH"
-exec python -m iosapplist "$@"
+export PYTHONDONTWRITEBYTECODE=x
+exec python -B -m iosapplist "$@"
