@@ -108,6 +108,7 @@ class Command(object):
  names = []
  names_are_aliases = True
  description = None
+ show_in_help = True
  sort_group = 0
  usage = None
  

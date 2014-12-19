@@ -40,8 +40,9 @@ class OutputCommand(Command):
  """Used internally by some commands."""
  
  names = ["<fill-this-in>"]
- sort_group = float("-inf")
  add_args = False
+ show_in_help = False
+ sort_group = float("-inf")
  
  def main(self, cli):
   if len(self.argv) != 4:

@@ -74,30 +74,31 @@ class CommandCommand(Command):
   p.epilog += ":"
   sort_group = n = 0
   for cmd in cli.commands:
-   names = cmd.names if not cmd.names_are_aliases else (cmd.names,)
-   for name in names:
-    name = name if isinstance(name, (list, tuple)) else (name,)
-    if n and cmd.sort_group < 0 and sort_group >= 0:
-     p.epilog += "\n"
-    if n and cmd.sort_group == float("-inf") and sort_group != float("-inf"):
-     p.epilog += "\n"
-    sort_group = cmd.sort_group
-    
-    p.epilog += "\n  "
-    if len(name) > 1:
-     p.epilog += "{%s}" % ", ".join(name)
-    else:
-     p.epilog += name[0]
-    if cmd.usage:
-     p.epilog += " " + cmd.usage
-    if cmd.description:
-     if callable(cmd.description):
-      p.epilog += "\n    " + cmd.description(name[0])
+   if cmd.show_in_help:
+    names = cmd.names if not cmd.names_are_aliases else (cmd.names,)
+    for name in names:
+     name = name if isinstance(name, (list, tuple)) else (name,)
+     if n and cmd.sort_group < 0 and sort_group >= 0:
+      p.epilog += "\n"
+     if n and cmd.sort_group == float("-inf") and sort_group != float("-inf"):
+      p.epilog += "\n"
+     sort_group = cmd.sort_group
+     
+     p.epilog += "\n  "
+     if len(name) > 1:
+      p.epilog += "{%s}" % ", ".join(name)
      else:
-      p.epilog += "\n    " + cmd.description
-    elif cmd.__doc__:
-     p.epilog += "\n    " + cmd.__doc__.split("\n", 1)[0]
-    n += 1
+      p.epilog += name[0]
+     if cmd.usage:
+      p.epilog += " " + cmd.usage
+     if cmd.description:
+      if callable(cmd.description):
+       p.epilog += "\n    " + cmd.description(name[0])
+      else:
+       p.epilog += "\n    " + cmd.description
+     elif cmd.__doc__:
+      p.epilog += "\n    " + cmd.__doc__.split("\n", 1)[0]
+     n += 1
   return p.parse_known_args
  
  def main(self, cli):
