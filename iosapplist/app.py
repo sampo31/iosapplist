@@ -81,8 +81,10 @@ dictionary style as well as attribute style.
   "bundle_id", "name", "friendly", "sort_key", "containers",
   "bundle_path", "bundle_uuid", "data_path", "data_uuid",
   "useable",
-  "__ready", "__dummy"
+  "info_tpl", "__ready", "__dummy"
  ]
+ 
+ info_tpl = u"$friendly ($bundle_id)"
  
  def __nonzero__(self):
   return bool(self.__ready)
@@ -211,7 +213,8 @@ each other and should have the ContainerClass LEGACY.
  # Utility methods
  
  def info_str(self, verbose=True):
-  info = u"%s (%s)" % (self.friendly, self.bundle_id)
+  info_tpl = self.info_tpl.split(":", 1)[0] if verbose else self.info_tpl
+  info = Template(info_tpl).safe_substitute(dict(self))
   if verbose:
    blacklist = ("bundle_id", "friendly", "sort_key")
    key_names = [key for key in self.iterkeys() if key not in blacklist]
