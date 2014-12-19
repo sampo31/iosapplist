@@ -31,6 +31,8 @@
 
 from __future__ import with_statement
 
+import sys
+
 import propertylist
 
 
@@ -78,10 +80,12 @@ def escape_utf8(s):
  return r
 
 
-def safe_print(s):
+def safe_print(s, file=sys.stdout):
  """Prints the given string, compensating for Unicode errors."""
- try: print s
- except UnicodeError: print strip_latin_diacritics(s).encode("ascii", "replace")
+ try:
+  print >> file, s
+ except UnicodeError:
+  print >> file, strip_latin_diacritics(s).encode("ascii", "replace")
 
 
 def strip_latin_diacritics(s):
@@ -106,4 +110,7 @@ def to_unicode(s, encoding="utf8", errors="strict"):
   return s
  if isinstance(s, (str, buffer)):
   return unicode(s, encoding, errors=errors)
- return unicode(s, errors=errors)
+ try:
+  return unicode(s, errors=errors)
+ except TypeError:
+  return unicode(s)

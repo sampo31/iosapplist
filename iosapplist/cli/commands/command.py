@@ -26,19 +26,26 @@
 # shall not be used in advertising or otherwise to promote the sale, use or
 # other dealings in this Software without prior written authorization.
 
-# Command-line interface
+# command command override
 
-import sys
+from __future__ import with_statement
 
-from . import CLI
-
-
-def main(argv=sys.argv):
- return CLI()(["command"] + argv[1:])
+from ..engine.commands.command import CommandCommand
 
 
-if __name__ == "__main__":
- try:
-  sys.exit(main(sys.argv))
- except KeyboardInterrupt:
-  pass
+__all__ = ["CommandCommand"]
+
+
+class CommandCommand(CommandCommand):
+ def add_args(self, p, cli):
+  parse_function = super(CommandCommand, self).add_args(p, cli)
+  p.add_argument("--root", "-r", default=None, metavar='<path>',
+                 help='The path to the directory containing app containers or'
+                      ' a mobile home directory (defaults to "/var/mobile").')
+  return parse_function
+ def main(self, cli):
+  output_generator = super(CommandCommand, self).main(cli)
+  if self.options.root:
+   if cli.app_root is None:
+    cli.app_root = self.options.root
+  return output_generator

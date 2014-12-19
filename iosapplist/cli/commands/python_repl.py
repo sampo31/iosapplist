@@ -26,19 +26,19 @@
 # shall not be used in advertising or otherwise to promote the sale, use or
 # other dealings in this Software without prior written authorization.
 
-# Command-line interface
+# python-repl command override
 
-import sys
+from __future__ import with_statement
 
-from . import CLI
-
-
-def main(argv=sys.argv):
- return CLI()(["command"] + argv[1:])
+from ..engine.commands.python_repl import PythonReplCommand
 
 
-if __name__ == "__main__":
- try:
-  sys.exit(main(sys.argv))
- except KeyboardInterrupt:
-  pass
+__all__ = ["PythonReplCommand"]
+
+
+class PythonReplCommand(PythonReplCommand):
+ def main(self, cli):
+  output_generator = super(PythonReplCommand, self).main(cli)
+  self.preamble  = "\n%sapp_list = iosapplist.AppList(root=%s)\n"
+  self.preamble %= (self.ps1, repr(cli.app_list.root.input))
+  return output_generator

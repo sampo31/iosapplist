@@ -31,12 +31,17 @@
 from __future__ import with_statement
 
 import os
+import string
 
 from container import ContainerError, Container, ContainerClass, ContainerRoot
 from util import propertylist
 from util import *
 
 __all__ = ["AppError", "App"]
+
+
+class Template(string.Template):
+ idpattern = r"[-._a-z][-._a-z0-9]*"
 
 
 class AppError(Exception): pass
@@ -46,14 +51,18 @@ class App(object):
  """Describes an App Store app.
 
 Attributes:
- bundle_id: the bundle ID of the app
- friendly:  the display name of the app
+ bundle_id:   the bundle ID of the app
+ friendly:    the display name of the app
  containers:
-  bundle:   the Container object for the app's bundle container
-  data:     the Container object for the app's data container
- name:      the name of the .app folder
- sort_key:  useful for sorting
- useable:   True if the app can be accessed; False otherwise
+  bundle:     the Container object for the app's bundle container
+  data:       the Container object for the app's data container
+ bundle_path: alias for containers.bundle.path
+ bundle_uuid: alias for containers.bundle.uuid
+ data_path:   alias for containers.data.path
+ data_uuid:   alias for containers.data.uuid
+ name:        the name of the .app folder
+ sort_key:    useful for sorting
+ useable:     True if the app can be accessed; False otherwise
 
 sort_key is the app's friendly name, converted to lowercase, with diacritical
 marks stripped using util.strip_latin_diacritics(), an underscore, and then the
@@ -63,12 +72,35 @@ Example:  facebook_com.facebook.Facebook
 On iOS <= 7.x, containers.bundle and containers.data will be the same object,
 and they will both have the psuedo-ContainerClass LEGACY.
 
+All attributes described above, except for containers, can be accessed in
+dictionary style as well as attribute style.
+
 """
  
- __ready = False
+ __slots__ = [
+  "bundle_id", "name", "friendly", "sort_key", "containers",
+  "bundle_path", "bundle_uuid", "data_path", "data_uuid",
+  "useable",
+  "__ready", "__dummy"
+ ]
  
  def __nonzero__(self):
   return bool(self.__ready)
+ 
+ @classmethod
+ def slot_names(cls):
+  """Returns a mapping of attribute names to human-readable descriptions."""
+  return dict(
+   bundle_id   = "Bundle ID",
+   name        = "Bundle name",
+   friendly    = "Name",
+   sort_key    = "Sort key",
+   bundle_path = "Bundle container path",
+   bundle_uuid = "Bundle container UUID",
+   data_path   = "Data container path",
+   data_uuid   = "Data container UUID",
+   useable     = "Useable",
+  )
  
  def __new__(cls, bundle_container, data_container, *args, **kwargs):
   # This exists to allow AppList.find_all() to not have to use a temporary
@@ -82,6 +114,7 @@ and they will both have the psuedo-ContainerClass LEGACY.
    data   = data_container
   self.containers = containers = containers()
   self.bundle_id = None
+  self.__ready = self.__dummy = False
   return self
  
  def __init__(self, bundle_container, data_container, *args, **kwargs):
@@ -158,3 +191,77 @@ each other and should have the ContainerClass LEGACY.
    pass
   
   self.__ready = True
+ 
+ @property
+ def bundle_path(self):
+  return self.containers.bundle.path
+ 
+ @property
+ def bundle_uuid(self):
+  return self.containers.bundle.uuid
+ 
+ @property
+ def data_path(self):
+  return self.containers.data.path
+ 
+ @property
+ def data_uuid(self):
+  return self.containers.data.uuid
+ 
+ # Utility methods
+ 
+ def info_str(self, verbose=True):
+  info = u"%s (%s)" % (self.friendly, self.bundle_id)
+  if verbose:
+   blacklist = ("bundle_id", "friendly", "sort_key")
+   key_names = [key for key in self.iterkeys() if key not in blacklist]
+   padding = reversed(sorted([len(name) for name in self.slot_names().values()])).next()
+   padding += 2
+   info += ":\n"
+   for attr, value in self.iteritems():
+    if attr not in ("bundle_id", "friendly", "sort_key"):
+     name = self.slot_names().get(attr, attr)
+     
+     if len(name) < padding:
+      name = ((" " * padding) + name)[-padding:]
+     info += u"%s:  %s\n" % (name, to_unicode(value))
+  return info
+ 
+ # Dict-alike methods
+ 
+ def __contains__(self, key):
+  return key in self.iterkeys()
+ 
+ def __getitem__(self, key):
+  return getattr(self, key)
+
+ def items(self):
+  return list(self.iteritems())
+ 
+ def iteritems(self):
+  types = (basestring, int, long, float, list, tuple, bool, None.__class__)
+  for cls in self.__class__.__mro__:
+   for attr in cls.__slots__:
+    if not attr.startswith("_"):
+     value = getattr(self, attr)
+     if isinstance(value, types):
+      yield (attr, value)
+   if cls == App:
+    break
+  raise StopIteration
+ 
+ def iterkeys(self):
+  for k, v in self.iteritems():
+   yield k
+  raise StopIteration
+ 
+ def itervalues(self):
+  for k, v in self.iteritems():
+   yield v
+  raise StopIteration
+ 
+ def keys(self):
+  return list(self.iterkeys())
+ 
+ def values(self):
+  return list(self.itervalues())

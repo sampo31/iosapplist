@@ -102,6 +102,12 @@ the constructor of app_class each time an app_class instance is made.
  
  def __nonzero__(self):
   return bool(self.__cache)
+
+ def get(self, key, default=None):
+  try:
+   return self[key]
+  except KeyError:
+   return default
  
  def find(self, query=None, mode=None, path=None, bundle_id=None, uuid=None):
   """Finds an App (or subclass) instance for the given path, bundle ID, or UUID.

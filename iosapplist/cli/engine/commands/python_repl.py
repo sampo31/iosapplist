@@ -26,19 +26,46 @@
 # shall not be used in advertising or otherwise to promote the sale, use or
 # other dealings in this Software without prior written authorization.
 
-# Command-line interface
+# python-repl command
 
+from __future__ import with_statement
+
+import code
 import sys
 
-from . import CLI
+from .. import Command, output
 
 
-def main(argv=sys.argv):
- return CLI()(["command"] + argv[1:])
+__all__ = ["PythonReplCommand"]
 
 
-if __name__ == "__main__":
- try:
-  sys.exit(main(sys.argv))
- except KeyboardInterrupt:
-  pass
+class PythonReplCommand(Command):
+ """Start an interactive Python prompt with access to an app_list object."""
+ names = ["python-repl", "python", "repl"]
+ add_args = False
+ preamble = ""
+ ps1 = getattr(sys, "ps1", None) or ">>> "
+ sort_group = -2
+ 
+ def main(self, cli):
+  def _console_banner():
+   banner = []
+   dummy_console = code.InteractiveConsole()
+   def dummy_write(data):
+    banner.append(data)
+   dummy_console.write = dummy_write
+   def dummy_input(prompt):
+    raise EOFError()
+   dummy_console.raw_input = dummy_input
+   dummy_console.interact()
+   return "\n".join("".join(banner).rstrip().splitlines()[:-1])
+  scope  = dict([(attr, getattr(cli, attr)) for attr in dir(cli)
+                 if not attr.startswith("_")])
+  ps1    = getattr(sys, "ps1", None) or ">>> "
+  banner = _console_banner()
+  if self.preamble:
+   banner += "\n"
+   banner += self.preamble
+  scope["__builtins__"] = __builtins__
+  code.interact(banner, None, scope)
+  yield output.stop(0)

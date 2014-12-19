@@ -32,7 +32,7 @@ setup(
   "Topic :: Utilities",
  ],
  packages=find_packages(),
- install_requires=["CFPropertyList", "simplejson"],
+ install_requires=["argparse", "CFPropertyList", "simplejson"],
  entry_points={
   "console_scripts": [
     "iosapplist=iosapplist.cli:main"

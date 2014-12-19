@@ -26,19 +26,7 @@
 # shall not be used in advertising or otherwise to promote the sale, use or
 # other dealings in this Software without prior written authorization.
 
-# Command-line interface
+# Base commands __init__.py file
+# (No shit, Sherlock.)
 
-import sys
-
-from . import CLI
-
-
-def main(argv=sys.argv):
- return CLI()(["command"] + argv[1:])
-
-
-if __name__ == "__main__":
- try:
-  sys.exit(main(sys.argv))
- except KeyboardInterrupt:
-  pass
+from __future__ import with_statement

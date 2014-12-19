@@ -26,19 +26,67 @@
 # shall not be used in advertising or otherwise to promote the sale, use or
 # other dealings in this Software without prior written authorization.
 
-# Command-line interface
+# shell command
 
-import sys
+from __future__ import with_statement
 
-from . import CLI
+import plistlib
+import readline
+import shlex
+import traceback
+
+try:
+ import json
+except ImportError:
+ import simplejson as json
+
+from .. import Command, output
 
 
-def main(argv=sys.argv):
- return CLI()(["command"] + argv[1:])
+__all__ = ["ShellCommand"]
 
 
-if __name__ == "__main__":
- try:
-  sys.exit(main(sys.argv))
- except KeyboardInterrupt:
-  pass
+class ShellCommand(Command):
+ """Starts an interactive shell."""
+ names = ["shell", "sh"]
+ sort_group = -3
+ usage = "[command [args [...]]]"
+ add_args = False
+
+ @property
+ def output_format(self):
+  return ""
+ 
+ def main(self, cli):
+  if self.argv[1:]:
+   yield output.stop(cli(["command"] + self.argv[1:]))
+  else:
+   build = ""
+   while True:
+    try:
+     line = raw_input("> " if not build else ". ")
+     if self.real_output_format == "plist":
+      build += line + "\n"
+      if "</plist>" in line:
+       argv = plistlib.readPlistFromString(build)
+       build = ""
+      else:
+       continue
+     elif self.real_output_format == "json":
+      argv = json.loads(line)
+     else:
+      argv = shlex.split(line)
+     if len(argv):
+      if argv[0] == "exit":
+       yield output.stop(0)
+       raise StopIteration()
+      if argv[0] == "help":
+       argv[0] = "--help"
+     cli(["command", "--robot=" + self.real_output_format] + argv)
+    except EOFError:
+     yield output.stop(0)
+    except StopIteration:
+     raise
+    except Exception, exc:
+     output.OutputCommand(cli).run(["shell", "127", "", traceback.format_exc(exc)])
+   yield output.stop(0)

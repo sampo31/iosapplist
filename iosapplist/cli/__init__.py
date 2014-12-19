@@ -26,11 +26,43 @@
 # shall not be used in advertising or otherwise to promote the sale, use or
 # other dealings in this Software without prior written authorization.
 
-# CLI __init__.py file
+# iosapplist CLI __init__.py file
 # (No shit, Sherlock.)
+
+"""A command-line utility to list iOS App Store apps."""
+
 
 from __future__ import with_statement
 
-from __main__ import main
+import types
 
-__all__ = ["main"]
+from ..app import App
+from ..applist import AppList
+from ..container import ContainerRoot
+
+from commands.command import CommandCommand
+from engine import CLI, CLIError, Command, output
+
+
+__all__ = ["CLI", "CLIError", "Command", "CommandCommand", "output"]
+
+
+class CLI(CLI):
+ default_command = "ls"
+ description = __doc__
+ program = "iosapplist"
+ 
+ app_class = App
+ app_root  = None
+ 
+ __app_list = None
+ @property
+ def app_list(self):
+  if not self.__app_list:
+   root = ContainerRoot(self.app_root or "/var/mobile")
+   self.__app_list = AppList(root=root)
+   self.app_root = self.__app_list.root.path
+  return self.__app_list
+
+import commands
+CLI.commands.register(commands)
