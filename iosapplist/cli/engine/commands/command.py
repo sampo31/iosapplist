@@ -45,7 +45,7 @@ class CommandCommand(Command):
  
  add_help = False
  description = None
- easter_eggs = True
+ easter_eggs = False
  names = ["command", "cmd"]
  sort_group = float("-inf")
  usage = "[options [...]] [command [args [...]]]"
