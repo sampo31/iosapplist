@@ -52,6 +52,7 @@ class ShellCommand(Command):
  sort_group = -3
  usage = "[command [args [...]]]"
  add_args = False
+ easter_eggs = False
 
  @property
  def output_format(self):
@@ -82,6 +83,13 @@ class ShellCommand(Command):
        raise StopIteration()
       if argv[0] == "help":
        argv[0] = "--help"
+      if self.easter_eggs and argv[0] == "hep":
+       output.OutputCommand(cli).run(["hep", "0",
+        ("Hep!  Hep!  I'm covered in sawlder! ... See, nobody comes.",
+         "--Red Green, https://www.youtube.com/watch?v=qVeQWtVzkAQ#t=6m27s"),
+        None
+       ])
+       continue
      cli(["command", "--robot=" + self.real_output_format] + argv)
     except EOFError:
      yield output.stop(0)
