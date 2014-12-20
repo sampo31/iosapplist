@@ -59,42 +59,53 @@ class ShellCommand(Command):
   return ""
  
  def main(self, cli):
+  one_command = False
   if self.argv[1:]:
-   yield output.stop(cli(["command"] + self.argv[1:]))
-  else:
-   build = ""
-   while True:
-    try:
+   one_command = self.argv[1:]
+  
+  build = ""
+  real_command = None
+  while True:
+   real_command = True
+   try:
+    if not one_command:
      line = raw_input("> " if not build else ". ")
-     if self.real_output_format == "plist":
-      build += line + "\n"
-      if "</plist>" in line:
-       argv = plistlib.readPlistFromString(build)
-       build = ""
-      else:
-       continue
-     elif self.real_output_format == "json":
-      argv = json.loads(line)
+    if one_command:
+     argv = one_command
+    elif self.real_output_format == "plist":
+     build += line + "\n"
+     if "</plist>" in line:
+      argv = plistlib.readPlistFromString(build)
+      build = ""
      else:
-      argv = shlex.split(line)
-     if len(argv):
-      if argv[0] == "exit":
-       yield output.stop(0)
-       raise StopIteration()
-      if argv[0] == "help":
-       argv[0] = "--help"
-      if self.easter_eggs and argv[0] == "hep":
-       output.OutputCommand(cli).run(["hep", "0",
-        ("Hep!  Hep!  I'm covered in sawlder! ... See, nobody comes.",
-         "--Red Green, https://www.youtube.com/watch?v=qVeQWtVzkAQ#t=6m27s"),
-        None
-       ])
-       continue
-     cli(["command", "--robot=" + self.real_output_format] + argv)
-    except EOFError:
-     yield output.stop(0)
-    except StopIteration:
-     raise
-    except Exception, exc:
-     output.OutputCommand(cli).run(["shell", "127", "", traceback.format_exc(exc)])
-   yield output.stop(0)
+      continue
+    elif self.real_output_format == "json":
+     argv = json.loads(line)
+    else:
+     argv = shlex.split(line)
+    if len(argv):
+     if argv[0] == "exit":
+      yield output.stop(0)
+      raise StopIteration()
+     if argv[0] == "help":
+      argv[0] = "--help"
+     if self.easter_eggs and argv[0] == "hep":
+      output.OutputCommand(cli).run(["hep", "0",
+       ("Hep!  Hep!  I'm covered in sawlder! ... See, nobody comes.",
+        "--Red Green, https://www.youtube.com/watch?v=qVeQWtVzkAQ#t=6m27s"),
+       None
+      ])
+      real_command = False
+    if real_command:
+     r = cli(["command", "--robot=" + self.real_output_format] + argv)
+    if one_command:
+     if real_command:
+      yield output.stop(r)
+     raise StopIteration()
+   except EOFError:
+    yield output.stop(0)
+   except StopIteration:
+    raise
+   except Exception, exc:
+    output.OutputCommand(cli).run(["shell", "127", "", traceback.format_exc(exc)])
+  yield output.stop(0)
