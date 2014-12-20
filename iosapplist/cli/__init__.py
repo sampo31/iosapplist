@@ -40,7 +40,7 @@ from ..app import App
 from ..applist import AppList
 from ..container import ContainerRoot
 
-from engine import CLI, CLIError, Command, output
+from engine import CLI, CLIError, Command, output, debug
 
 
 __all__  = ["CLI", "CLIError", "Command", "output"]
