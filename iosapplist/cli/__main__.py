@@ -35,10 +35,7 @@ from . import CLI
 
 
 def main(argv=sys.argv):
- cli = CLI()
- if os.environ.get("IOSAPPLIST_DEBUG", False):
-  cli.debug = True
- return cli(["command"] + argv[1:])
+ return CLI()(["command"] + argv[1:])
 
 
 if __name__ == "__main__":

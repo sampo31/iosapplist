@@ -45,6 +45,8 @@ from ...util import safe_print
 
 import output
 
+from . import debug
+
 
 __all__ = ["Command", "output"]
 
@@ -148,7 +150,13 @@ class Command(object):
   robot_output = dict(cmd=self.argv[0], success=None, return_code=None,
                       output={"normal": [], "error": []})
   
-  for output_generator in (self._parse_args, self.main):
+  output_generators = (
+   (self._parse_args, "_parse_args"),
+   (self.main,        "main")
+  )
+  
+  for output_generator, generator_name in output_generators:
+   debug("iterating through output from", generator_name)
    output_iterator = output_generator(self.cli)
    for item in output_iterator:
     value = item.value
@@ -165,6 +173,7 @@ class Command(object):
     if self.return_code != None and not isinstance(output_iterator, (list, tuple)):
      break
    if self.return_code != None:
+    debug("stopping output with code:", item.value) 
     break
   
   if self.return_code is None:

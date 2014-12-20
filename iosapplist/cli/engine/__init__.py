@@ -31,7 +31,19 @@
 
 from __future__ import with_statement
 
+import os
+import sys
 import types
+
+
+_debug = os.environ.get("IOSAPPLIST_CLI_DEBUG", False)
+def debug(*args):
+ if _debug:
+  print >> sys.stderr, "%",
+  for i in args:
+   print >> sys.stderr, i,
+  print >> sys.stderr
+
 
 import commands
 import output
