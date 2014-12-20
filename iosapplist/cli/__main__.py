@@ -28,13 +28,17 @@
 
 # Command-line interface
 
+import os
 import sys
 
 from . import CLI
 
 
 def main(argv=sys.argv):
- return CLI()(["command"] + argv[1:])
+ cli = CLI()
+ if os.environ.get("IOSAPPLIST_DEBUG", False):
+  cli.debug = True
+ return cli(["command"] + argv[1:])
 
 
 if __name__ == "__main__":

@@ -28,6 +28,7 @@
 
 # Base CLI engine
 
+import sys
 import types
 
 import commands
@@ -68,15 +69,18 @@ def make_CLI_class():
   
   __output_format = None
   
+  debug = False
   default_command = basestring
   description = None
   program = None
   
   def __call__(self, argv, default=None.__class__):
+   if self.debug: print >> sys.stderr, "# preparing to run", argv
    argv0 = argv[0] if len(argv) else None
    cmd = self.commands.get(argv0, None)
    default = self.default_command if default is None.__class__ else default
    if not cmd:
+    if self.debug: print >> sys.stderr, "# getting object for default command:", default
     cmd = self.commands.get(default, None)
     if cmd:
      argv = [default] + argv
@@ -85,7 +89,9 @@ def make_CLI_class():
       raise CLIError("%s is not a valid command" % argv0)
      else:
       raise CLIError("no command given")
-   return cmd(self).run(argv)
+   if self.debug: print >> sys.stderr, "# running", argv
+   r = cmd(self).run(argv)
+   if self.debug: print >> sys.stderr, "# finished running", argv
  
  return CLI
 
