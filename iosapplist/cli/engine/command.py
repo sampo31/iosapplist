@@ -207,7 +207,15 @@ class Command(object):
    if isinstance(p.usage, basestring):
     p.usage = cli.program + " " + p.usage
    if not p.description:
-    p.description = self.__doc__
+    if self.description:
+     if callable(self.description):
+      description = self.description(self.argv[0])
+      if description:
+       p.description = description
+     else:
+      p.description = self.description
+    if not p.description:
+     p.description = self.__doc__
    def _print_message(message, file=None, _out=out):
     if file == sys.stdout:
      _out += [output.normal(message)]
