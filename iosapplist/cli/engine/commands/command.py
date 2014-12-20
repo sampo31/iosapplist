@@ -127,8 +127,16 @@ class CommandCommand(Command):
       usage = "usage: %s %s" % (cli.program, cmd_name)
       if cmd.usage:
        usage += " " + cmd.usage
-      if cmd.__doc__:
-       usage += "\n\n" + cmd.__doc__
+      description = None
+      if cmd.description:
+       if callable(cmd.description):
+        description = cmd.description(cmd.argv[0])
+       else:
+        description = cmd.description
+      if not description:
+       description = cmd.__doc__
+      if description:
+       usage += "\n\n" + description
       usage += "\n"
       output.OutputCommand(cli).run([self.argv[0], "0", usage, ""])
       yield output.stop(0)
