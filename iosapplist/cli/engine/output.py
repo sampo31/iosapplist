@@ -57,9 +57,11 @@ class OutputCommand(Command):
   if not isinstance(error_value, (list, tuple)):
    error_value = (error_value,)
   for value in error_value:
-   yield error(value)
+   if value is not None and value != "":
+    yield error(value)
   for value in normal_value:
-   yield normal(value)
+   if value is not None and value != "":
+    yield normal(value)
   yield stop(stop_value)
 
 
