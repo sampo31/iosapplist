@@ -76,7 +76,7 @@ class ListCommand(Command):
     if not self.is_robot:
      key = key.replace("-", "_")
     keys = list_keys()
-    if key != "keys" and key not in keys:
+    if key not in keys:
      yield output.error("invalid key %s" % repr(key))
      yield output.stop(2)
  
