@@ -82,8 +82,9 @@ class ListCommand(Command):
      yield output.error("invalid key %s" % repr(key))
      yield output.stop(2)
  
-   debug("populating app list cache")
-   cli.app_list.find_all()
+   if not cli.app_list:
+    debug("populating app list cache")
+    cli.app_list.find_all()
    if search:
     # search for some apps
     debug("listing some apps")
