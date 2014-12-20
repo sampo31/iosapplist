@@ -95,6 +95,7 @@ def make_CLI_class():
    debug("running", argv)
    r = cmd(self).run(argv)
    debug("finished running", argv)
+   return r
  
  return CLI
 
