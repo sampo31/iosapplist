@@ -30,7 +30,7 @@
 
 from __future__ import with_statement
 
-from .. import Command, output
+from .. import Command, output, debug
 
 
 __all__ = ["ListCommand"]
@@ -50,12 +50,14 @@ class ListCommand(Command):
  
  def main(self, cli):
   def list_keys():
+   debug("making list of keys")
    keys = sorted(cli.app_list.app_class.slot_names().keys())
    keys = list(keys)
    return keys
   
   if self.options.list_keys:
    # list available keys
+   debug("listing available keys")
    keys = list_keys()
    if self.is_robot:
     yield output.normal(keys)
@@ -80,9 +82,11 @@ class ListCommand(Command):
      yield output.error("invalid key %s" % repr(key))
      yield output.stop(2)
  
+   debug("populating app list cache")
    cli.app_list.find_all()
    if search:
     # search for some apps
+    debug("listing some apps")
     results = [(query, cli.app_list.get(query, None)) for query in search]
     n_matches = 0
     for query, match in results:
@@ -97,8 +101,10 @@ class ListCommand(Command):
     app_list = (match for query, match in results if match)
    else:
     # show all apps
+    debug("listing all apps")
     app_list = cli.app_list.sorted()
    
+   debug("outputting the list")
    for app in app_list:
     # show the apps
     if app == None:
