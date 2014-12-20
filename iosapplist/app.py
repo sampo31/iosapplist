@@ -216,7 +216,7 @@ each other and should have the ContainerClass LEGACY.
   info_tpl = self.info_tpl.split(":", 1)[0] if verbose else self.info_tpl
   info = Template(info_tpl).safe_substitute(dict(self))
   if verbose:
-   blacklist = ("bundle_id", "friendly", "sort_key")
+   blacklist = ("info_tpl", "bundle_id", "friendly", "sort_key")
    key_names = [key for key in self.iterkeys() if key not in blacklist]
    padding = reversed(sorted([len(name) for name in self.slot_names().values()])).next()
    padding += 2
@@ -243,10 +243,11 @@ each other and should have the ContainerClass LEGACY.
  
  def iteritems(self):
   types = (basestring, int, long, float, list, tuple, bool, None.__class__)
+  blacklist = ("info_tpl",)
   for cls in reversed(self.__class__.__mro__):
    if issubclass(cls, App):
     for attr in cls.__slots__:
-     if not attr.startswith("_"):
+     if not attr.startswith("_") and attr not in blacklist:
       value = getattr(self, attr)
       if isinstance(value, types):
        yield (attr, value)
