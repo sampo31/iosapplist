@@ -32,7 +32,7 @@
 from __future__ import with_statement
 
 __author__  = "Scott Zeid <s@zeid.me>"
-__version__ = "3.0.dev12"
+__version__ = "3.0.dev13"
 
 codename    = "Maserati"  # git push all maserati
 
