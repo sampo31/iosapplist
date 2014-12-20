@@ -83,7 +83,7 @@ class ListCommand(Command):
      yield output.stop(2)
  
    if not cli.app_list:
-    debug("populating app list cache")
+    debug("populating the app list cache")
     cli.app_list.find_all()
    if search:
     # search for some apps
