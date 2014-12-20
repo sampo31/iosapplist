@@ -113,7 +113,7 @@ class CommandCommand(Command):
     yield output.normal("HEAR ME ROAR")
     yield output.stop(0)
    if self.options.hep:
-    yield output.normal("Hep!  Hep!  I'm covered in sawlder! ... See, nobody comes.")
+    yield output.normal("Hep!  Hep!  I'm covered in sawlder! ... Eh?  Nobody comes.")
     yield output.normal("--Red Green, https://www.youtube.com/watch?v=qVeQWtVzkAQ#t=6m27s")
     yield output.stop(0)
   if self.options.help:
