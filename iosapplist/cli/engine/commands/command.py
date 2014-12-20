@@ -64,6 +64,8 @@ class CommandCommand(Command):
   p.description = self.description or cli.description
   p.add_argument("--help", "-h", action="store_true",
                  help='Shows help about the program or a command.')
+  if self.easter_eggs:
+   p.add_argument("--hep", action="store_true", help=argparse.SUPPRESS)
   p.add_argument("--robot", default="", metavar='<format>',
                  help='Produce output suitable for robots.'
                       '  Format should be "plist" or "json".')
@@ -105,10 +107,15 @@ class CommandCommand(Command):
   output_format = self.options.robot
   if self.options.robot and cli._CLI__output_format is None:
    cli._CLI__output_format = self.options.robot
-  if self.easter_eggs and output_format.lower() in ("true","yes","on","y","1"):
-   yield output.normal("I AM ROBOT")
-   yield output.normal("HEAR ME ROAR")
-   yield output.stop(0)
+  if self.easter_eggs:
+   if self.options.robot.lower() in ("true","yes","on","y","1"):
+    yield output.normal("I AM ROBOT")
+    yield output.normal("HEAR ME ROAR")
+    yield output.stop(0)
+   if self.options.hep:
+    yield output.normal("Hep!  Hep!  I'm covered in sawlder! ... See, nobody comes.")
+    yield output.normal("--Red Green, https://www.youtube.com/watch?v=qVeQWtVzkAQ#t=6m27s")
+    yield output.stop(0)
   if self.options.help:
    cmd_name = self.extra[0] if self.extra else None
    if cmd_name and cmd_name not in self.names:
