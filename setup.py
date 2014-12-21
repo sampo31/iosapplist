@@ -35,7 +35,7 @@ setup(
  install_requires=["argparse", "CFPropertyList", "simplejson"],
  entry_points={
   "console_scripts": [
-    "iosapplist=iosapplist.cli:main"
+    "iosapplist=iosapplist:main"
   ]
  },
 )

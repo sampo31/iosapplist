@@ -37,5 +37,6 @@ __version__ = "3.0.dev17"
 codename    = "Maserati"  # git push all maserati
 
 from applist import AppList, AppListError
+from __main__ import main
 
-__all__     = ["AppList", "AppListError"]
+__all__     = ["AppList", "AppListError", "main"]
