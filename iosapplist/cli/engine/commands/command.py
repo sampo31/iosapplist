@@ -70,8 +70,8 @@ class CommandCommand(Command):
   p.add_argument("--robot", default="", metavar='<format>',
                  help='Produce output suitable for robots.'
                       '  Format should be "plist" or "json".')
+  p.formatter_class = argparse.RawDescriptionHelpFormatter
   if self.want_help:
-   p.formatter_class = argparse.RawDescriptionHelpFormatter
    p.epilog = "commands"
    if cli.default_command:
     p.epilog += " (default is `%s`)" % cli.default_command
