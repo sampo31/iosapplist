@@ -156,9 +156,7 @@ class CommandCommand(Command):
        output.OutputCommand(cli).run([self.argv[0], "0", usage])
        yield output.stop(0)
      else:
-      message = "%s is not a valid command" % cmd_name
-      output.OutputCommand(cli).run([self.argv[0], "2", "", message])
-      yield output.stop(2)
+      raise CLIError("%s is not a valid command" % cmd_name)
     else:
      cmd = self.__class__(cli)
      cmd.argv = [cmd_name, "--help"]
