@@ -117,7 +117,7 @@ class CommandCommand(Command):
     yield output.stop(0)
   
   output_format = self.options.robot
-  if self.options.robot and cli._CLI__output_format is None:
+  if cli._CLI__output_format is None:
    cli._CLI__output_format = self.options.robot
   if self.options.help:
    cmd_name = self.extra[0] if self.extra else None
