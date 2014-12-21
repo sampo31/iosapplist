@@ -129,6 +129,7 @@ class ShellCommand(Command):
      raise StopIteration()
    except EOFError:
     yield output.stop(0)
+    break
    except StopIteration:
     raise
    except Exception, exc:
