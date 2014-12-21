@@ -30,9 +30,11 @@
 
 from __future__ import with_statement
 
+import array
 import plistlib
 import readline
 import shlex
+import sys
 import traceback
 
 try:
@@ -50,18 +52,29 @@ class ShellCommand(Command):
  """Starts an interactive shell."""
  names = ["shell", "sh"]
  sort_group = -3
- usage = "[command [args [...]]]"
- add_args = False
+ usage = "[options] [command [args [...]]]"
  easter_eggs = False
+ 
+ def add_args(self, p, cli):
+  p.add_argument("--ps1", default="> ",
+                 help='The string to use to prompt for input ("> " by default).'
+                      '  -0 supersedes this option.')
+  p.add_argument("-0", "--null", action="store_true",
+                 help='Prompt for and terminate input with a null byte instead'
+                      ' of, respectively, ps1 and a newline.  Useful in'
+                      '  conjunction with the global option --robot.')
+  return p.parse_known_args
 
  @property
  def output_format(self):
   return ""
  
  def main(self, cli):
+  ps1 = "\0" if self.options.null else self.options.ps1
+  
   one_command = False
-  if self.argv[1:]:
-   one_command = self.argv[1:]
+  if self.extra:
+   one_command = self.extra
   
   build = ""
   real_command = None
@@ -69,16 +82,33 @@ class ShellCommand(Command):
    real_command = True
    try:
     if not one_command:
-     line = raw_input("> " if not build else ". ")
+     if self.options.null:
+      sys.stdout.write("\0")
+      sys.stdout.flush()
+      line = array.array('c')
+      while True:
+       char = sys.stdin.read(1)
+       if char == "":
+	yield output.stop(0)
+       elif char != "\0":
+        line.fromstring(char)
+       else:
+	break
+      line = line.tostring()
+     else:
+      line = raw_input(ps1 if not build else "")
     if one_command:
      argv = one_command
     elif self.real_output_format == "plist":
-     build += line + "\n"
-     if "</plist>" in line:
-      argv = plistlib.readPlistFromString(build)
-      build = ""
+     if self.options.null:
+      argv = plistlib.readPlistFromString(line)
      else:
-      continue
+      build += line + "\n"
+      if "</plist>" in line:
+       argv = plistlib.readPlistFromString(build)
+       build = ""
+      else:
+       continue
     elif self.real_output_format == "json":
      argv = json.loads(line)
     else:
