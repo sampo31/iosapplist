@@ -104,9 +104,6 @@ class CommandCommand(Command):
   return p.parse_known_args
  
  def main(self, cli):
-  output_format = self.options.robot
-  if self.options.robot and cli._CLI__output_format is None:
-   cli._CLI__output_format = self.options.robot
   if self.easter_eggs:
    if self.options.robot.lower() in ("true","yes","on","y","1"):
     yield output.normal("I AM ROBOT")
@@ -116,6 +113,10 @@ class CommandCommand(Command):
     yield output.normal("Hep!  Hep!  I'm covered in sawlder! ... Eh?  Nobody comes.")
     yield output.normal("--Red Green, https://www.youtube.com/watch?v=qVeQWtVzkAQ#t=6m27s")
     yield output.stop(0)
+  
+  output_format = self.options.robot
+  if self.options.robot and cli._CLI__output_format is None:
+   cli._CLI__output_format = self.options.robot
   if self.options.help:
    cmd_name = self.extra[0] if self.extra else None
    if cmd_name and cmd_name not in self.names:
