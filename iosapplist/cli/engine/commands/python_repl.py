@@ -40,7 +40,7 @@ __all__ = ["PythonReplCommand"]
 
 
 class PythonReplCommand(Command):
- """Start an interactive Python prompt with access to an app_list object."""
+ """Starts an interactive Python prompt with access to an app_list object."""
  names = ["python-repl", "python", "repl"]
  add_args = False
  preamble = ""
