@@ -45,32 +45,36 @@ class OutputCommand(Command):
  sort_group = float("-inf")
  
  def main(self, cli):
-  if len(self.argv) != 4:
-   yield stop(127)
-  argv0, stop_value, normal_value, error_value = self.argv
+  argv = (self.argv[:5] + ([""] * 5))[:5]
+  argv0, stop_value, normal_value, error_value, traceback_value = argv
   try:
    stop_value = int(stop_value)
   except ValueError:
    yield stop(127)
-  if not isinstance(normal_value, (list, tuple)):
-   normal_value = (normal_value,)
-  if not isinstance(error_value, (list, tuple)):
-   error_value = (error_value,)
-  for value in error_value:
-   if value is not None and value != "":
-    yield error(value)
-  for value in normal_value:
-   if value is not None and value != "":
-    yield normal(value)
+  value_lists = (
+   ("error", error_value),
+   ("normal", normal_value),
+   ("traceback", traceback_value),
+  )
+  for value_type, value_list in value_lists:
+   if not isinstance(value_list, (list, tuple)):
+    value_list = (value_list,)
+    for value in value_list:
+     if value is not None and value != "":
+      yield item(value_type, value)
   yield stop(stop_value)
+
+
+def normal(value, human=None):
+ return item("normal", value, human)
 
 
 def error(value, human=None):
  return item("error", value, human)
 
 
-def normal(value, human=None):
- return item("normal", value, human)
+def traceback(value, human=None):
+ return item("traceback", value, human)
 
 
 def stop(value, human=None):

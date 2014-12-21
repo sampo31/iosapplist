@@ -35,6 +35,7 @@ import plistlib
 import re
 import string
 import sys
+import traceback
 
 try:
  import json
@@ -149,9 +150,9 @@ class Command(object):
   
   self.argv = argv
   
-  human_output = {"normal": self.stdout, "error": self.stderr}
+  human_output = {"normal": self.stdout, "error": self.stderr, "traceback": self.stderr}
   robot_output = dict(cmd=self.argv[0], success=None, return_code=None,
-                      output={"normal": [], "error": []})
+                      output={"normal": [], "error": [], "traceback": []})
   
   output_generators = (
    (self._parse_args, "_parse_args"),
@@ -161,19 +162,34 @@ class Command(object):
   for output_generator, generator_name in output_generators:
    debug("iterating through output from", generator_name)
    output_iterator = output_generator(self.cli)
-   for item in output_iterator:
-    value = item.value
-    if item.type == "stop":
-     self.return_code = item.value
+   while True:
+    try:
+     item = output_iterator.next()
+     value = item.value
+     if item.type == "stop":
+      self.return_code = item.value
+      break
+     if self.is_robot or return_output:
+      robot_output["output"][item.type] += [value]
+     else:
+      if isinstance(value, dict):
+       if isinstance(item.human, basestring):
+        value = Template(item.human).safe_substitute(value)
+      safe_print(value, human_output[item.type])
+     if self.return_code != None and not isinstance(output_iterator, (list, tuple)):
+      break
+    except StopIteration:
      break
-    if self.is_robot or return_output:
-     robot_output["output"][item.type] += [value]
-    else:
-     if isinstance(value, dict):
-      if isinstance(item.human, basestring):
-       value = Template(item.human).safe_substitute(value)
-     safe_print(value, human_output[item.type])
-    if self.return_code != None and not isinstance(output_iterator, (list, tuple)):
+    except Exception, exc:
+     tb = traceback.format_exc()
+     if self.is_robot or return_output:
+      robot_output["output"]["traceback"] += [tb]
+     else:
+      self.stderr.write(tb)
+      if not tb.endswith("\n"):
+       self.stderr.write(tb)
+      self.stderr.flush()
+     del tb
      break
    if self.return_code != None:
     debug("stopping output with code:", item.value) 
