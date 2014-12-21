@@ -89,7 +89,7 @@ class ShellCommand(Command):
       while True:
        char = sys.stdin.read(1)
        if char == "":
-	yield output.stop(0)
+	raise EOFError()
        elif char != "\0":
         line.fromstring(char)
        else:
