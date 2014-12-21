@@ -91,7 +91,8 @@ def make_CLI_class():
      if argv0:
       raise CLIError("%s is not a valid command" % argv0)
      else:
-      raise CLIError("no command given")
+      cmd = self.commands["command"]
+      argv = ["command", "--help"]
    debug("running", argv)
    r = cmd(self).run(argv)
    debug("finished running", argv)
