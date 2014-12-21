@@ -124,6 +124,10 @@ class Command(object):
  def add_args(self, arg_parser, cli):
   raise TypeError("Command.add_args is an abstract method")
  
+ @property
+ def args(self):
+  return self.argv[1:]
+ 
  def main(self, cli):
   raise TypeError("Command.main is an abstract method")
  
@@ -144,7 +148,6 @@ class Command(object):
    raise RuntimeError("this instance has already been executed")
   
   self.argv = argv
-  self.args = argv[1:]
   
   human_output = {"normal": self.stdout, "error": self.stderr}
   robot_output = dict(cmd=self.argv[0], success=None, return_code=None,

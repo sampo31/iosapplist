@@ -49,6 +49,7 @@ class CommandCommand(Command):
  names = ["command", "cmd"]
  sort_group = float("-inf")
  usage = "[options [...]] [command [args [...]]]"
+ want_help = False
 
  @property
  def output_format(self):
@@ -69,38 +70,39 @@ class CommandCommand(Command):
   p.add_argument("--robot", default="", metavar='<format>',
                  help='Produce output suitable for robots.'
                       '  Format should be "plist" or "json".')
-  p.formatter_class = argparse.RawDescriptionHelpFormatter
-  p.epilog = "commands"
-  if cli.default_command:
-   p.epilog += " (default is `%s`)" % cli.default_command
-  p.epilog += ":"
-  sort_group = n = 0
-  for cmd in cli.commands:
-   if cmd.show_in_help:
-    names = cmd.names if not cmd.names_are_aliases else (cmd.names,)
-    for name in names:
-     name = name if isinstance(name, (list, tuple)) else (name,)
-     if n and cmd.sort_group < 0 and sort_group >= 0:
-      p.epilog += "\n"
-     if n and cmd.sort_group == float("-inf") and sort_group != float("-inf"):
-      p.epilog += "\n"
-     sort_group = cmd.sort_group
-     
-     p.epilog += "\n  "
-     if len(name) > 1:
-      p.epilog += "{%s}" % ", ".join(name)
-     else:
-      p.epilog += name[0]
-     if cmd.usage:
-      p.epilog += " " + cmd.usage
-     if cmd.description:
-      if callable(cmd.description):
-       p.epilog += "\n    " + cmd.description(name[0])
+  if self.want_help:
+   p.formatter_class = argparse.RawDescriptionHelpFormatter
+   p.epilog = "commands"
+   if cli.default_command:
+    p.epilog += " (default is `%s`)" % cli.default_command
+   p.epilog += ":"
+   sort_group = n = 0
+   for cmd in cli.commands:
+    if cmd.show_in_help:
+     names = cmd.names if not cmd.names_are_aliases else (cmd.names,)
+     for name in names:
+      name = name if isinstance(name, (list, tuple)) else (name,)
+      if n and cmd.sort_group < 0 and sort_group >= 0:
+       p.epilog += "\n"
+      if n and cmd.sort_group == float("-inf") and sort_group != float("-inf"):
+       p.epilog += "\n"
+      sort_group = cmd.sort_group
+      
+      p.epilog += "\n  "
+      if len(name) > 1:
+       p.epilog += "{%s}" % ", ".join(name)
       else:
-       p.epilog += "\n    " + cmd.description
-     elif cmd.__doc__:
-      p.epilog += "\n    " + cmd.__doc__.split("\n", 1)[0]
-     n += 1
+       p.epilog += name[0]
+      if cmd.usage:
+       p.epilog += " " + cmd.usage
+      if cmd.description:
+       if callable(cmd.description):
+        p.epilog += "\n    " + cmd.description(name[0])
+       else:
+        p.epilog += "\n    " + cmd.description
+      elif cmd.__doc__:
+       p.epilog += "\n    " + cmd.__doc__.split("\n", 1)[0]
+      n += 1
   return p.parse_known_args
  
  def main(self, cli):
@@ -146,11 +148,14 @@ class CommandCommand(Command):
      output.OutputCommand(cli).run([self.argv[0], "2", "", message])
      yield output.stop(2)
    else:
-    cmd = CommandCommand(cli)
-    cmd.add_help = True
+    cmd = self.__class__(cli)
+    cmd.argv = [cmd_name, "--help"]
+    cmd.want_help = True
+    for i in cmd._parse_args(cli):
+     pass
     if cmd_name in self.names:
      self.arg_parser.description = cmd.__doc__
-    yield output.normal(self.arg_parser.format_help())
+    yield output.normal(cmd.arg_parser.format_help())
     yield output.stop(0)
   else:
    yield output.stop(cli(self.extra))
