@@ -121,6 +121,8 @@ class ShellCommand(Command):
       argv[0] = "--help"
      if self.easter_eggs and argv[0] == "hep":
       argv[0] = "--hep"
+    else:
+     continue
     if real_command:
      r = cli(["command", "--robot=" + self.real_output_format] + argv)
     if one_command:
