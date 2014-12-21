@@ -134,4 +134,6 @@ class ShellCommand(Command):
     raise
    except Exception, exc:
     output.OutputCommand(cli).run(["shell", "127", "", "", traceback.format_exc(exc)])
+    if one_command:
+     raise StopIteration()
   yield output.stop(0)
