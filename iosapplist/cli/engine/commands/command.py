@@ -50,14 +50,21 @@ class CommandCommand(Command):
  sort_group = float("-inf")
  usage = "[options [...]] [command [args [...]]]"
  want_help = False
+ 
+ __is_easter_egg = False
+ __robot_easter_egg_triggers = ("true", "yes", "on", "y", "1")
 
  @property
  def output_format(self):
   options = getattr(self, "options", None)
-  if getattr(options, "help", False):
+  if getattr(options, "help", False) or self.__is_easter_egg:
    cmd_name = self.extra[0] if self.extra else None
    if not (cmd_name and cmd_name not in self.names):
-    return getattr(options, "robot", "")
+    robot = getattr(options, "robot", "")
+    if robot not in self.__robot_easter_egg_triggers:
+     return robot
+    else:
+     return self.real_output_format
   return ""
  
  def add_args(self, p, cli):
@@ -106,19 +113,22 @@ class CommandCommand(Command):
   return p.parse_known_args
  
  def main(self, cli):
+  if cli._CLI__output_format is None:
+   if self.options.robot not in self.__robot_easter_egg_triggers:
+    cli._CLI__output_format = self.options.robot
+  
   if self.easter_eggs:
-   if self.options.robot.lower() in ("true","yes","on","y","1"):
+   if self.options.robot.lower() in self.__robot_easter_egg_triggers:
+    self.__is_easter_egg = True
     yield output.normal("I AM ROBOT")
     yield output.normal("HEAR ME ROAR")
     yield output.stop(0)
    if self.options.hep:
+    self.__is_easter_egg = True
     yield output.normal("Hep!  Hep!  I'm covered in sawlder! ... Eh?  Nobody comes.")
     yield output.normal("--Red Green, https://www.youtube.com/watch?v=qVeQWtVzkAQ#t=6m27s")
     yield output.stop(0)
   
-  output_format = self.options.robot
-  if cli._CLI__output_format is None:
-   cli._CLI__output_format = self.options.robot
   if self.options.help:
    cmd_name = self.extra[0] if self.extra else None
    if cmd_name and cmd_name not in self.names:
@@ -141,7 +151,7 @@ class CommandCommand(Command):
       if description:
        usage += "\n\n" + description
       usage += "\n"
-      output.OutputCommand(cli).run([self.argv[0], "0", usage, ""])
+      output.OutputCommand(cli).run([self.argv[0], "0", usage])
       yield output.stop(0)
     else:
      message = "%s is not a valid command" % cmd_name
