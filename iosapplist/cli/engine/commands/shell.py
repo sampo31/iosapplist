@@ -115,8 +115,7 @@ class ShellCommand(Command):
      argv = shlex.split(line)
     if len(argv):
      if argv[0] == "exit":
-      yield output.stop(0)
-      raise StopIteration()
+      raise StopIteration(0)
      if argv[0] == "help":
       argv[0] = "--help"
      if self.easter_eggs and argv[0] == "hep":
@@ -127,15 +126,16 @@ class ShellCommand(Command):
      r = cli(["command", "--robot=" + self.real_output_format] + argv)
     if one_command:
      if real_command:
-      yield output.stop(r)
-     raise StopIteration()
+      raise StopIteration(r)
+     else:
+      raise StopIteration(0)
    except EOFError:
-    yield output.stop(0)
+    raise StopIteration(0)
     break
    except StopIteration:
     raise
    except Exception, exc:
     output.OutputCommand(cli).run(["shell", "127", "", "", traceback.format_exc(exc)])
     if one_command:
-     raise StopIteration()
-  yield output.stop(0)
+     raise StopIteration(127)
+  raise StopIteration(0)

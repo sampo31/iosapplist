@@ -46,11 +46,11 @@ class OutputCommand(Command):
  
  def main(self, cli):
   argv = (self.argv[:5] + ([""] * 5))[:5]
-  argv0, stop_value, normal_value, error_value, traceback_value = argv
+  argv0, return_code, normal_value, error_value, traceback_value = argv
   try:
-   stop_value = int(stop_value)
+   return_code = int(return_code)
   except ValueError:
-   yield stop(127)
+   raise StopIteration(127)
   value_lists = (
    ("error", error_value),
    ("normal", normal_value),
@@ -62,7 +62,7 @@ class OutputCommand(Command):
     for value in value_list:
      if value is not None and value != "":
       yield item(value_type, value)
-  yield stop(stop_value)
+  raise StopIteration(return_code)
 
 
 def normal(value, human=None):
@@ -75,10 +75,6 @@ def error(value, human=None):
 
 def traceback(value, human=None):
  return item("traceback", value, human)
-
-
-def stop(value, human=None):
- return item("stop", value, human)
 
 
 def item(type, value, human=None):

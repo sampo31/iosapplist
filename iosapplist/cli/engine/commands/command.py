@@ -123,12 +123,12 @@ class CommandCommand(Command):
     self.__is_easter_egg = True
     yield output.normal("I AM ROBOT")
     yield output.normal("HEAR ME ROAR")
-    yield output.stop(0)
+    raise StopIteration(0)
    if self.options.hep:
     self.__is_easter_egg = True
     yield output.normal("Hep!  Hep!  I'm covered in sawlder! ... Eh?  Nobody comes.")
     yield output.normal("--Red Green, https://www.youtube.com/watch?v=qVeQWtVzkAQ#t=6m27s")
-    yield output.stop(0)
+    raise StopIteration(0)
   
   try:
    if self.options.help:
@@ -137,7 +137,7 @@ class CommandCommand(Command):
      cmd = cli.commands.get(cmd_name, None)
      if cmd:
       if cmd.add_args:
-       yield output.stop(cli([cmd_name, "--help"]))
+       raise StopIteration(cli([cmd_name, "--help"]))
       else:
        usage = "usage: %s %s" % (cli.program, cmd_name)
        if cmd.usage:
@@ -154,7 +154,7 @@ class CommandCommand(Command):
         usage += "\n\n" + description
        usage += "\n"
        output.OutputCommand(cli).run([self.argv[0], "0", usage])
-       yield output.stop(0)
+       raise StopIteration(0)
      else:
       raise CLIError("%s is not a valid command" % cmd_name)
     else:
@@ -166,10 +166,10 @@ class CommandCommand(Command):
      if cmd_name in self.names:
       self.arg_parser.description = cmd.__doc__
      yield output.normal(cmd.arg_parser.format_help())
-     yield output.stop(0)
+     raise StopIteration(0)
    else:
-    yield output.stop(cli(self.extra))
+    raise StopIteration(cli(self.extra))
   except CLIError, exc:
    message = "%s: error: %s" % (cli.program, str(exc))
    output.OutputCommand(cli).run([self.argv[0], "2", "", message])
-   yield output.stop(2)
+   raise StopIteration(2)

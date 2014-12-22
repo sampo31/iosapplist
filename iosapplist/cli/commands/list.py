@@ -80,7 +80,7 @@ class ListCommand(Command):
     keys = list_keys()
     if key not in keys:
      yield output.error("invalid key %s" % repr(key))
-     yield output.stop(2)
+     raise StopIteration(2)
  
    if not cli.app_list:
     debug("populating the app list cache")
@@ -98,7 +98,7 @@ class ListCommand(Command):
      else:
       n_matches += 1
     if not n_matches:
-     yield output.stop(1)
+     raise StopIteration(1)
     app_list = (match for query, match in results if match)
    else:
     # show all apps
@@ -116,11 +116,11 @@ class ListCommand(Command):
       yield output.normal(app[key])
      except KeyError:
       yield output.error("invalid key %s" % repr(key))
-      yield output.stop(2)
+      raise StopIteration(2)
     else:
      if self.is_robot:
       yield output.normal(dict(app))
      else:
       yield output.normal(app.info_str(self.options.long))
    
-   yield output.stop(0)
+   raise StopIteration(0)

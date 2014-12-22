@@ -48,4 +48,4 @@ class RefreshListCommand(Command):
  def main(self, cli):
   debug("re-populating the app list cache")
   cli.app_list.find_all()
-  yield output.stop(0)
+  raise StopIteration(0)

@@ -166,9 +166,6 @@ class Command(object):
     try:
      item = output_iterator.next()
      value = item.value
-     if item.type == "stop":
-      self.return_code = item.value
-      break
      if self.is_robot or return_output:
       robot_output["output"][item.type] += [value]
      else:
@@ -178,7 +175,12 @@ class Command(object):
       safe_print(value, human_output[item.type])
      if self.return_code != None and not isinstance(output_iterator, (list, tuple)):
       break
-    except StopIteration:
+    except StopIteration, exc:
+     if len(exc.args):
+      try:
+       self.return_code = int(exc.args[0])
+      except ValueError:
+       self.return_code = 127
      break
     except Exception, exc:
      tb = traceback.format_exc()
@@ -192,7 +194,7 @@ class Command(object):
      del tb
      break
    if self.return_code != None:
-    debug("stopping output with code:", item.value) 
+    debug("stopping output with code:", self.return_code) 
     break
   
   if self.return_code is None:
@@ -251,4 +253,4 @@ class Command(object):
   for item in out:
    yield item
   if r != None:
-   yield output.stop(r)
+   raise StopIteration(r)

@@ -68,4 +68,4 @@ class PythonReplCommand(Command):
    banner += self.preamble
   scope["__builtins__"] = __builtins__
   code.interact(banner, None, scope)
-  yield output.stop(0)
+  raise StopIteration(0)
