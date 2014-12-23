@@ -109,6 +109,7 @@ def make_CLI_class():
    cmd = self.commands.get(argv0, None)
    default_arg = default
    default = self.default_command if default is None.__class__ else default
+   doing_help = False
    if not cmd:
     debug("getting object for default command:", default)
     cmd = self.commands.get(default, None)
@@ -122,6 +123,8 @@ def make_CLI_class():
       cmd = self.commands["shell"]
       argv = ["sh", "--help"]
    cmd = cmd(self)
+   if doing_help:
+    cmd._ShellCommand__is_shell = False
    return cmd, argv
  
  return CLI
