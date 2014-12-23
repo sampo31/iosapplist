@@ -181,7 +181,7 @@ class Command(object):
      if len(exc.args):
       try:
        self.return_code = int(exc.args[0])
-      except ValueError:
+      except (TypeError, ValueError):
        self.return_code = 127
     except SystemExit, exc:
      try:
