@@ -32,6 +32,7 @@ from __future__ import with_statement
 
 import argparse
 import array
+import math
 import plistlib
 import re
 import readline
@@ -49,6 +50,14 @@ from ..cli import CLIError
 
 
 __all__ = ["ShellCommand"]
+
+
+def sign(n):
+ if n < 0:
+  return -1
+ if n > 0:
+  return +1
+ return 0
 
 
 class ShellCommand(Command):
@@ -102,7 +111,9 @@ class ShellCommand(Command):
      names = cmd.names if not cmd.names_are_aliases else (cmd.names,)
      for name in names:
       name = name if isinstance(name, (list, tuple)) else (name,)
-      if n and abs(cmd.sort_group - sort_group) > 1:
+      if n and sign(cmd.sort_group or 1) != sign(sort_group or 1):
+        p.epilog += "\n"
+      elif n and abs(cmd.sort_group - sort_group) > 1:
         p.epilog += "\n"
       sort_group = cmd.sort_group
       
