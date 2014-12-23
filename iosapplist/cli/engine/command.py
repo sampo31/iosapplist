@@ -271,13 +271,13 @@ class Command(object):
    p._print_message = _print_message
    try:
     self.options = parse_function(self.args)
+    if parse_function == p.parse_known_args:
+     self.options, self.extra = self.options
     if have_hep_easter_egg:
      if getattr(self.options, "_Command__hep_easter_egg", False):
       yield output.normal("Hep!  Hep!  I'm covered in sawlder! ... Eh?  Nobody comes.")
       yield output.normal("--Red Green, https://www.youtube.com/watch?v=qVeQWtVzkAQ#t=6m27s")
       r = 0
-    if parse_function == p.parse_known_args:
-     self.options, self.extra = self.options
    except SystemExit, exc:
     r = exc.code
   
