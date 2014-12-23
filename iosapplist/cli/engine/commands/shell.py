@@ -216,19 +216,20 @@ class ShellCommand(Command):
      else:
       argv = shlex.split(line)
      if len(argv) == 1 and one_command == False:
-      if argv[0] == "exit":
-       raise StopIteration(0)
-      if argv[0] == "help":
-       real_command = False
-       message = self.help_string(cli, True)
-       output.OutputCommand(cli).run([self.argv[0], "0", message])
-      if self.easter_eggs and argv[0] == "hep":
-       argv[0] = "--hep"
-       argv = ["sh"] + argv
-      if argv[0] == "version":
-       real_command = False
-       message = self.version_string(cli)
-       output.OutputCommand(cli).run([self.argv[0], "0", message])
+      if argv[0] not in cli.commands:
+       if argv[0] == "exit":
+        raise StopIteration(0)
+       if argv[0] == "help":
+        real_command = False
+        message = self.help_string(cli, True)
+        output.OutputCommand(cli).run([self.argv[0], "0", message])
+       if self.easter_eggs and argv[0] == "hep":
+        argv[0] = "--hep"
+        argv = ["sh"] + argv
+       if argv[0] == "version":
+        real_command = False
+        message = self.version_string(cli)
+        output.OutputCommand(cli).run([self.argv[0], "0", message])
      elif not len(argv) and one_command == False:
       continue
      r = 127
