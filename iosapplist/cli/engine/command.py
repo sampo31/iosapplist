@@ -235,6 +235,14 @@ class Command(object):
   if callable(self.add_args):
    self.arg_parser = p = argparse.ArgumentParser(self.argv[0], add_help=self.add_help)
    parse_function = self.add_args(p, cli) or p.parse_args
+   have_hep_easter_egg = False
+   if getattr(self, "easter_eggs", cli.easter_eggs) and self.add_help:
+    try:
+     p.add_argument("--hep", dest="_Command__hep_easter_egg", action="store_true",
+                    help=argparse.SUPPRESS)
+     have_hep_easter_egg = True
+    except argparse.ArgumentError:
+     pass
    if not p.usage:
     if self.usage:
      usage = self.argv[0] + " " + self.usage
@@ -261,6 +269,11 @@ class Command(object):
    p._print_message = _print_message
    try:
     self.options = parse_function(self.args)
+    if have_hep_easter_egg:
+     if getattr(self.options, "_Command__hep_easter_egg", False):
+      yield output.normal("Hep!  Hep!  I'm covered in sawlder! ... Eh?  Nobody comes.")
+      yield output.normal("--Red Green, https://www.youtube.com/watch?v=qVeQWtVzkAQ#t=6m27s")
+      r = 0
     if parse_function == p.parse_known_args:
      self.options, self.extra = self.options
    except SystemExit, exc:
