@@ -114,7 +114,6 @@ class Command(object):
  names = []
  names_are_aliases = True
  description = None
- easter_eggs = None
  show_in_help = True
  sort_group = 0
  usage = None
@@ -134,6 +133,10 @@ class Command(object):
  @property
  def args(self):
   return self.argv[1:]
+ 
+ @property
+ def easter_eggs(self):
+  return self.cli.easter_eggs
  
  def main(self, cli):
   raise TypeError("Command.main is an abstract method")
@@ -235,9 +238,7 @@ class Command(object):
    self.arg_parser = p = argparse.ArgumentParser(self.argv[0], add_help=self.add_help)
    parse_function = self.add_args(p, cli) or p.parse_args
    have_hep_easter_egg = False
-   want_easter_eggs = getattr(self, "easter_eggs", None)
-   if want_easter_eggs is None:
-    want_easter_eggs = cli.easter_eggs
+   want_easter_eggs = getattr(self, "easter_eggs", False)
    if want_easter_eggs and self.add_help:
     try:
      p.add_argument("--hep", dest="_Command__hep_easter_egg", action="store_true",
