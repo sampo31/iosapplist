@@ -50,8 +50,8 @@ import output
 
 from command import Command
 from commandlist import CommandList
-from commands.command import CommandCommand
+from commands.shell import ShellCommand
 from cli import CLI, CLIError
 
 
-__all__ = ["CLI", "CLIError", "Command", "CommandCommand", "output"]
+__all__ = ["CLI", "CLIError", "Command", "ShellCommand", "output"]
