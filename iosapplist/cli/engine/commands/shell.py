@@ -169,7 +169,7 @@ class ShellCommand(Command):
     elif one_command == False or len(one_command) == 0:
      yield self.do_help(cli, "")
     else:
-     one_command = ["--help"] + one_command
+     one_command[1:1] = ["--help"]
    
    build = ""
    real_command = None

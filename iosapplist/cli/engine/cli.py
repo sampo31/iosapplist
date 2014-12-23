@@ -78,16 +78,31 @@ def make_CLI_class():
   description = None
   program = None
   
-  def start(self, argv):
-   argv0 = "shell" if not self.__started_any else "command"
-   argv = ["" if not self.__started_any else argv0] + argv
-   self.__started_any = True
+  def start(self, argv, default=None.__class__):
+   argv = (["shell"] if not self.__started_any else []) + argv
    debug("running", argv, "in a new instance")
-   r = self.commands[argv0](self).run(argv)
+   cmd, argv = self._lookup(argv, default)
+   if not self.__started_any:
+    argv[0] = ""
+   self.__started_any = True
+   r = cmd(self).run(argv)
    debug("finished running", argv)
    return r
   
   def __call__(self, argv, default=None.__class__):
+   cmd, argv = self._lookup(argv, default)
+   debug("running", argv)
+   generator = cmd(self).generate_output(argv)
+   while True:
+    try:
+     item = generator.next()
+     yield item
+    except StopIteration, exc:
+     debug("finished running", argv)
+     while True:
+      raise exc
+  
+  def _lookup(self, argv, default=None.__class__):
    debug("preparing to run", argv)
    argv0 = argv[0] if len(argv) else None
    cmd = self.commands.get(argv0, None)
@@ -103,16 +118,7 @@ def make_CLI_class():
      else:
       cmd = self.commands["shell"]
       argv = ["sh", "--help"]
-   debug("running", argv)
-   generator = cmd(self).generate_output(argv)
-   while True:
-    try:
-     item = generator.next()
-     yield item
-    except StopIteration, exc:
-     debug("finished running", argv)
-     while True:
-      raise exc
+   return cmd, argv
  
  return CLI
 
