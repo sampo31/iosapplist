@@ -38,7 +38,7 @@ __all__ = ["PythonReplCommand"]
 
 class PythonReplCommand(PythonReplCommand):
  def main(self, cli):
-  output_generator = super(PythonReplCommand, self).main(cli)
   self.preamble  = "\n%sapp_list = iosapplist.AppList(root=%s)\n"
   self.preamble %= (self.ps1, repr(cli.app_list.root.input))
-  return output_generator
+  output_not_generator = super(PythonReplCommand, self).main(cli)
+  return output_not_generator
