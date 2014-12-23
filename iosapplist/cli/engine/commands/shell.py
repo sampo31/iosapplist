@@ -215,10 +215,11 @@ class ShellCommand(Command):
       argv = json.loads(line)
      else:
       argv = shlex.split(line)
-     if len(argv) == 1 and one_command == False:
+     if len(argv) == 1 and self.__is_shell:
       if argv[0] not in cli.commands:
-       if argv[0] == "exit":
-        raise StopIteration(0)
+       if one_command == False:
+        if argv[0] == "exit":
+         raise StopIteration(0)
        if argv[0] == "help":
         real_command = False
         message = self.help_string(cli, True)
