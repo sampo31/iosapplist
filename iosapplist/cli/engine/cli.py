@@ -83,7 +83,6 @@ def make_CLI_class():
    argv = (["shell"] if not self.__started_any else []) + argv
    debug("running", argv, "in a new instance")
    cmd, argv = self._lookup(argv, default)
-   cmd = cmd(self)
    if not self.__started_any:
     cmd._ShellCommand__is_shell = False
    self.__started_any = True
@@ -94,7 +93,7 @@ def make_CLI_class():
   def __call__(self, argv, default=None.__class__):
    cmd, argv = self._lookup(argv, default)
    debug("running", argv)
-   generator = cmd(self).generate_output(argv)
+   generator = cmd.generate_output(argv)
    while True:
     try:
      item = generator.next()
@@ -119,8 +118,10 @@ def make_CLI_class():
      if argv0 or (not argv0 and default_arg is not None.__class__):
       raise CLIError("%s is not a valid command" % argv0)
      else:
+      doing_help = True
       cmd = self.commands["shell"]
       argv = ["sh", "--help"]
+   cmd = cmd(self)
    return cmd, argv
  
  return CLI
