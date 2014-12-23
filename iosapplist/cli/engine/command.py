@@ -183,6 +183,8 @@ class Command(object):
       except ValueError:
        self.return_code = 127
      break
+    except SystemExit, exc:
+     self.return_code = exc.code
     except Exception, exc:
      tb = traceback.format_exc()
      yield output.traceback(tb)
