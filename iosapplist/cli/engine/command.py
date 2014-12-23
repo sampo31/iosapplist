@@ -114,7 +114,7 @@ class Command(object):
  names = []
  names_are_aliases = True
  description = None
- easter_eggs = False
+ easter_eggs = None
  show_in_help = True
  sort_group = 0
  usage = None
@@ -235,7 +235,10 @@ class Command(object):
    self.arg_parser = p = argparse.ArgumentParser(self.argv[0], add_help=self.add_help)
    parse_function = self.add_args(p, cli) or p.parse_args
    have_hep_easter_egg = False
-   if getattr(self, "easter_eggs", cli.easter_eggs) and self.add_help:
+   want_easter_eggs = getattr(self, "easter_eggs", None)
+   if want_easter_eggs is None:
+    want_easter_eggs = cli.easter_eggs
+   if want_easter_eggs and self.add_help:
     try:
      p.add_argument("--hep", dest="_Command__hep_easter_egg", action="store_true",
                     help=argparse.SUPPRESS)
