@@ -180,6 +180,7 @@ class Command(object):
     except Exception, exc:
      tb = traceback.format_exc()
      yield output.traceback(tb)
+     self.return_code = 127
      break
    if self.return_code != None:
     debug("stopping output with code:", self.return_code) 
