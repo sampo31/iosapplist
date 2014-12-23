@@ -41,7 +41,7 @@ __all__ = ["PythonReplCommand"]
 
 class PythonReplCommand(Command):
  """Starts an interactive Python prompt with access to an app_list object."""
- names = ["python-repl", "python", "repl"]
+ names = ["python", "py", "python-repl"]
  preamble = ""
  ps1 = getattr(sys, "ps1", None) or ">>> "
  sort_group = -2
