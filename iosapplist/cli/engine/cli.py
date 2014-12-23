@@ -82,10 +82,11 @@ def make_CLI_class():
    argv = (["shell"] if not self.__started_any else []) + argv
    debug("running", argv, "in a new instance")
    cmd, argv = self._lookup(argv, default)
+   cmd = cmd(self)
    if not self.__started_any:
-    argv[0] = ""
+    cmd._ShellCommand__is_shell = False
    self.__started_any = True
-   r = cmd(self).run(argv)
+   r = cmd.run(argv)
    debug("finished running", argv)
    return r
   
@@ -106,6 +107,7 @@ def make_CLI_class():
    debug("preparing to run", argv)
    argv0 = argv[0] if len(argv) else None
    cmd = self.commands.get(argv0, None)
+   default_arg = default
    default = self.default_command if default is None.__class__ else default
    if not cmd:
     debug("getting object for default command:", default)
@@ -113,7 +115,7 @@ def make_CLI_class():
     if cmd:
      argv = [default] + argv
     else:
-     if argv0:
+     if argv0 or (not argv0 and default_arg is not None.__class__):
       raise CLIError("%s is not a valid command" % argv0)
      else:
       cmd = self.commands["shell"]

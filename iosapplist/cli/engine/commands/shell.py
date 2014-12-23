@@ -62,7 +62,7 @@ class ShellCommand(Command):
  sort_group = -3
  usage = "[options [...]] [command [args [...]]]"
  
- __is_shell = False
+ __is_shell = True
  
  __robot_easter_egg_triggers = ("true", "yes", "on", "y", "1")
  __use_real_output_format = True
@@ -74,10 +74,11 @@ class ShellCommand(Command):
  def add_args(self, p, cli):
   p.usage = self.usage
   p.description = self.description or cli.description
-  p.add_argument("--help", "-h", action="store_true",
-                 help='Shows help about the program or a command.')
-  if self.easter_eggs:
-   p.add_argument("--hep", action="store_true", help=argparse.SUPPRESS)
+  if self.__is_shell:
+   p.add_argument("--help", "-h", action="store_true",
+                  help='show this help and exit')
+   if self.easter_eggs:
+    p.add_argument("--hep", action="store_true", help=argparse.SUPPRESS)
   p.add_argument("--robot", default="", metavar='<format>',
                  help='Produce output suitable for robots.'
                       '  Format should be "plist" or "json".')
@@ -130,12 +131,16 @@ class ShellCommand(Command):
     cli._CLI__output_format = self.options.robot
 
   if self.easter_eggs:
+   # robot
    if self.options.robot.lower() in self.__robot_easter_egg_triggers:
     self.__use_real_output_format = True
     yield output.normal("I AM ROBOT")
     yield output.normal("HEAR ME ROAR")
     raise StopIteration(0)
-   if self.options.hep:
+   # hep
+   want_hep = getattr(self.options, "hep", False) # never true if not __is_shell
+   want_hep = want_hep or (len(self.extra) == 1 and self.extra[0] == "--hep")
+   if want_hep:
     self.__use_real_output_format = True
     yield output.normal("Hep!  Hep!  I'm covered in sawlder! ... Eh?  Nobody comes.")
     yield output.normal("--Red Green, https://www.youtube.com/watch?v=qVeQWtVzkAQ#t=6m27s")
@@ -147,29 +152,15 @@ class ShellCommand(Command):
   try:
    ps1 = "\0" if null else ps1
    
-   one_command = False
-   if self.extra:
-    if not (len(self.extra) and self.extra[0] in self.names):
-     # running another command
-     one_command = self.extra
-    elif not self.__is_shell:
-     # running a shell
-     debug("re-invoking with __is_shell = True")
-     cmd = cli.commands[self.extra[0]](cli)
-     cmd.__is_shell = True
-     yield cmd.generate_output(self.argv)
-     raise StopIteration(127)
-   elif self.argv[0] == "":
+   one_command = self.extra if len(self.extra) else False
+   if not self.__is_shell and not one_command:
     # invoked as top-level command
     one_command = []
-
-   if self.options.help:
-    if len(self.extra) and self.extra[0] in self.names:
-     yield self.do_help(cli, self.extra[0])
-    elif one_command == False or len(one_command) == 0:
-     yield self.do_help(cli, "")
-    else:
-     one_command[1:1] = ["--help"]
+   
+   help_flag = getattr(self.options, "help", False)
+   help_arg = len(self.extra) and self.extra[0] in ("-h", "--help")
+   if help_flag or (help_arg and not self.__is_shell):
+    yield self.do_help(cli)
    
    build = ""
    real_command = None
@@ -208,20 +199,21 @@ class ShellCommand(Command):
       argv = json.loads(line)
      else:
       argv = shlex.split(line)
-     if len(argv):
+     if len(argv) == 1 and one_command == False:
       if argv[0] == "exit":
        raise StopIteration(0)
-      if argv[0] in ("help", "-h", "--help"):
+      if argv[0] == "help":
        real_command = False
-       yield output.normal(self.help_string(cli, ""))
-      if self.easter_eggs and argv[0] in ("hep", "--hep"):
+       message = self.help_string(cli, True)
+       output.OutputCommand(cli).run([self.argv[0], "0", message])
+      if self.easter_eggs and argv[0] == "hep":
        argv[0] = "--hep"
        argv = ["sh"] + argv
-     elif one_command == False:
+     elif not len(argv) and one_command == False:
       continue
      r = 127
      if real_command:
-      r = cli.start(argv)
+      r = cli.start(argv, default=(None if self.__is_shell else None.__class__))
      if one_command != False:
       if real_command:
        raise StopIteration(r)
@@ -230,6 +222,11 @@ class ShellCommand(Command):
     except EOFError:
      raise StopIteration(0)
      break
+    except CLIError, exc:
+     message = self.format_cli_error(cli, exc)
+     output.OutputCommand(cli).run([self.argv[0], "2", "", message])
+     if one_command != False:
+      raise StopIteration(2)
     except StopIteration:
      raise
     except Exception, exc:
@@ -241,24 +238,31 @@ class ShellCommand(Command):
      if one_command != False:
       raise StopIteration(127)
    raise StopIteration(0)
+  except CLIError, exc:
+   yield output.error(self.format_cli_error(cli, exc))
+   raise StopIteration(2)
   except StopIteration:
    raise
  
- def do_help(self, cli, argv0=None):
+ def format_cli_error(self, cli, exc):
+  argv0 = self.argv[0] if self.__is_shell else cli.program
+  return "%s: error: %s" % (argv0 or self.names[0], str(exc))
+ 
+ def do_help(self, cli, for_program=None):
   self.__use_real_output_format = True
   try:
-   yield output.normal(self.help_string(cli, argv0))
+   yield output.normal(self.help_string(cli, for_program))
    raise StopIteration(0)
   except CLIError, exc:
-   message = "%s: error: %s" % (cli.program, str(exc))
-   yield output.error(message)
+   yield output.error(self.format_cli_error(cli, exc))
    raise StopIteration(2)
  
- def help_string(self, cli, argv0=None):
-  cmd_name = argv0 or (self.argv[0] if self.argv else "")
+ def help_string(self, cli, for_program=None):
+  if for_program is None:
+   for_program = not self.__is_shell
   cmd = self.__class__(cli)
-  cmd.argv = [cmd_name, "--help"]
-  cmd.__is_shell = self.__is_shell and argv0
+  cmd.argv = [self.argv[0], "--help"]
+  cmd.__is_shell = not for_program
   if cmd.__is_shell:
    cmd.usage = None
   for i in cmd._parse_args(cli):
