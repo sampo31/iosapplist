@@ -69,6 +69,7 @@ class ShellCommand(Command):
  usage = "[options [...]] [command [args [...]]]"
  
  __is_shell = True
+ __want_help = False
  
  __robot_easter_egg_triggers = ("true", "yes", "on", "y", "1")
  __use_real_output_format = True
@@ -81,14 +82,14 @@ class ShellCommand(Command):
   if not self.__is_shell:
    p.usage = self.usage
    p.description = cli.description
-  if self.__is_shell:
+  if self.__is_shell or self.__want_help:
    p.add_argument("--help", "-h", action="store_true",
                   help='show this help and exit')
    if self.easter_eggs:
     p.add_argument("--hep", action="store_true", help=argparse.SUPPRESS)
-  p.add_argument("--robot", default="", metavar='<format>',
-                 help='Produce output suitable for robots.'
-                      '  Format should be "plist" or "json".')
+  if self.__want_help and not self.__is_shell and getattr(cli, "version", None):
+   p.add_argument("--version", "-V", action="store_true",
+                  help="show program's version number and exit")
   if self.__is_shell:
    p.add_argument("--ps1", default="> ",
                   help='The string to use to prompt for shell input ("> " by'
@@ -97,8 +98,11 @@ class ShellCommand(Command):
                   help='Prompt for and terminate shell input with a null byte'
                        ' instead of, respectively, ps1 and a newline.  Useful'
                        ' in conjunction with --robot.')
+  p.add_argument("--robot", default="", metavar='<format>',
+                 help='Produce output suitable for robots.'
+                      '  Format should be "plist" or "json".')
   p.formatter_class = argparse.RawDescriptionHelpFormatter
-  if not self.__is_shell:
+  if not self.__is_shell and self.__want_help:
    p.epilog = "commands"
    if cli.default_command:
     p.epilog += " (default is `%s`)" % cli.default_command
@@ -169,6 +173,11 @@ class ShellCommand(Command):
    if help_flag or (help_arg and not self.__is_shell):
     yield self.do_help(cli)
    
+   if not self.__is_shell:
+    if len(self.extra) and self.extra[0] in ("-V", "--version"):
+     yield output.normal(self.version_string(cli))
+     raise StopIteration(0)
+   
    build = ""
    real_command = None
    while True:
@@ -216,6 +225,10 @@ class ShellCommand(Command):
       if self.easter_eggs and argv[0] == "hep":
        argv[0] = "--hep"
        argv = ["sh"] + argv
+      if argv[0] == "version":
+       real_command = False
+       message = self.version_string(cli)
+       output.OutputCommand(cli).run([self.argv[0], "0", message])
      elif not len(argv) and one_command == False:
       continue
      r = 127
@@ -254,7 +267,7 @@ class ShellCommand(Command):
  def format_cli_error(self, cli, exc):
   argv0 = self.argv[0] if self.__is_shell else cli.program
   return "%s: error: %s" % (argv0 or self.names[0], str(exc))
- 
+
  def do_help(self, cli, for_program=None):
   self.__use_real_output_format = True
   try:
@@ -270,6 +283,10 @@ class ShellCommand(Command):
   cmd = self.__class__(cli)
   cmd.argv = [self.argv[0], "--help"]
   cmd.__is_shell = not for_program
+  cmd.__want_help = True
   for i in cmd._parse_args(cli):
    pass
   return cmd.arg_parser.format_help()
+ 
+ def version_string(self, cli):
+  return "%s %s" % (str(cli.program), str(cli.version))

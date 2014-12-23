@@ -39,6 +39,7 @@ import types
 from ..app import App
 from ..applist import AppList
 from ..container import ContainerRoot
+from .. import __version__ as pkg_version
 
 from engine import CLI, CLIError, Command, output, debug
 
@@ -52,6 +53,7 @@ class CLI(CLI):
  description = __doc__
  easter_eggs = True
  program = "iosapplist"
+ version = pkg_version
  
  app_class = App
  app_root  = None

@@ -78,6 +78,7 @@ def make_CLI_class():
   description = None
   easter_eggs = False
   program = None
+  version = None
   
   def start(self, argv, default=None.__class__):
    argv = (["shell"] if not self.__started_any else []) + argv
