@@ -76,6 +76,7 @@ def make_CLI_class():
   
   default_command = None
   description = None
+  easter_eggs = False
   program = None
   
   def start(self, argv, default=None.__class__):

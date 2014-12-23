@@ -50,6 +50,7 @@ __all__ += ["ShellCommand", "main"]  # imported at the bottom of the file
 class CLI(CLI):
  default_command = "ls"
  description = __doc__
+ easter_eggs = True
  program = "iosapplist"
  
  app_class = App
