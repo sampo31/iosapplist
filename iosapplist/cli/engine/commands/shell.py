@@ -65,7 +65,6 @@ class ShellCommand(Command):
  
  names = ["shell", "sh"]
  add_help = False
- description = None
  sort_group = -2.2
  usage = "[options [...]] [command [args [...]]]"
  
@@ -79,8 +78,9 @@ class ShellCommand(Command):
   return self.real_output_format if self.__use_real_output_format else ""
  
  def add_args(self, p, cli):
-  p.usage = self.usage
-  p.description = self.description or cli.description
+  if not self.__is_shell:
+   p.usage = self.usage
+   p.description = cli.description
   if self.__is_shell:
    p.add_argument("--help", "-h", action="store_true",
                   help='show this help and exit')
@@ -270,10 +270,6 @@ class ShellCommand(Command):
   cmd = self.__class__(cli)
   cmd.argv = [self.argv[0], "--help"]
   cmd.__is_shell = not for_program
-  if cmd.__is_shell:
-   cmd.usage = None
   for i in cmd._parse_args(cli):
    pass
-  if cmd.__is_shell:
-   cmd.arg_parser.description = cmd.__doc__
   return cmd.arg_parser.format_help()
