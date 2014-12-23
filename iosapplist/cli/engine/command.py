@@ -76,16 +76,19 @@ class Command(object):
   @property
   def _sort_group_key(cls):
    if cls.__sort_group_key == None or cls.__sort_group_key[1] != cls.sort_group:
+    max_int  = int(2**31-1)
+    max_uint = int(2**32-1)
     if cls.sort_group >= 0:
      if cls.sort_group == float("inf"):
-      key = sys.maxint
+      key = max_int
      else:
       key = cls.sort_group
     else:
      if cls.sort_group == float("-inf"):
-      key = sys.maxint * 2
+      key = max_uint
      else:
-      key = sys.maxint * 2 + cls.sort_group
+      key = max_uint + cls.sort_group
+    print cls.names, key
     cls.__sort_group_key = (key, cls.sort_group)
    return cls.__sort_group_key[0]
   
