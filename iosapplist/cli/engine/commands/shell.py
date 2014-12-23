@@ -102,10 +102,8 @@ class ShellCommand(Command):
      names = cmd.names if not cmd.names_are_aliases else (cmd.names,)
      for name in names:
       name = name if isinstance(name, (list, tuple)) else (name,)
-      if n and cmd.sort_group < 0 and sort_group >= 0:
-       p.epilog += "\n"
-      if n and cmd.sort_group == float("-inf") and sort_group != float("-inf"):
-       p.epilog += "\n"
+      if n and abs(cmd.sort_group - sort_group) > 1:
+        p.epilog += "\n"
       sort_group = cmd.sort_group
       
       p.epilog += "\n  "
