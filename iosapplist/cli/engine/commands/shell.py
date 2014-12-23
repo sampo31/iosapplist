@@ -44,7 +44,7 @@ except ImportError:
  import simplejson as json
 import traceback
 
-from .. import Command, output
+from .. import Command, output, debug
 from ..cli import CLIError
 
 
@@ -61,9 +61,8 @@ class ShellCommand(Command):
  #names = ["command", "cmd"]
  sort_group = -3
  usage = "[options [...]] [command [args [...]]]"
- want_help = False
  
- __is_repl = False
+ __is_shell = False
  
  __robot_easter_egg_triggers = ("true", "yes", "on", "y", "1")
  __use_real_output_format = True
@@ -82,15 +81,16 @@ class ShellCommand(Command):
   p.add_argument("--robot", default="", metavar='<format>',
                  help='Produce output suitable for robots.'
                       '  Format should be "plist" or "json".')
-  p.add_argument("--ps1", default="> ",
-                 help='The string to use to prompt for input ("> " by default).'
-                      '  -0 supersedes this option.')
-  p.add_argument("-0", "--null", action="store_true",
-                 help='Prompt for and terminate input with a null byte instead'
-                      ' of, respectively, ps1 and a newline.  Useful in'
-                      '  conjunction with the global option --robot.')
+  if self.__is_shell:
+   p.add_argument("--ps1", default="> ",
+                  help='The string to use to prompt for shell input ("> " by'
+                       ' default).  -0 supersedes this option.')
+   p.add_argument("-0", "--null", action="store_true",
+                  help='Prompt for and terminate shell input with a null byte'
+                       ' instead of, respectively, ps1 and a newline.  Useful'
+                       ' in conjunction with --robot.')
   p.formatter_class = argparse.RawDescriptionHelpFormatter
-  if self.want_help:
+  if not self.__is_shell:
    p.epilog = "commands"
    if cli.default_command:
     p.epilog += " (default is `%s`)" % cli.default_command
@@ -141,15 +141,26 @@ class ShellCommand(Command):
     yield output.normal("--Red Green, https://www.youtube.com/watch?v=qVeQWtVzkAQ#t=6m27s")
     raise StopIteration(0)
   
+  null = getattr(self.options, "null", False)
+  ps1 = getattr(self.options, "ps1", "")
   self.__use_real_output_format = False
   try:
-   ps1 = "\0" if self.options.null else self.options.ps1
+   ps1 = "\0" if null else ps1
    
    one_command = False
    if self.extra:
     if not (len(self.extra) and self.extra[0] in self.names):
+     # running another command
      one_command = self.extra
+    elif not self.__is_shell:
+     # running a shell
+     debug("re-invoking with __is_shell = True")
+     cmd = cli.commands[self.extra[0]](cli)
+     cmd.__is_shell = True
+     yield cmd.generate_output(self.argv)
+     raise StopIteration(127)
    elif self.argv[0] == "":
+    # invoked as top-level command
     one_command = []
 
    if self.options.help:
@@ -166,7 +177,7 @@ class ShellCommand(Command):
     real_command = True
     try:
      if one_command == False:
-      if self.options.null:
+      if null:
        sys.stdout.write("\0")
        sys.stdout.flush()
        line = array.array('c')
@@ -200,10 +211,10 @@ class ShellCommand(Command):
      if len(argv):
       if argv[0] == "exit":
        raise StopIteration(0)
-      if argv[0] == "help":
+      if argv[0] in ("help", "-h", "--help"):
        real_command = False
        yield output.normal(self.help_string(cli, ""))
-      if self.easter_eggs and argv[0] == "hep":
+      if self.easter_eggs and argv[0] in ("hep", "--hep"):
        argv[0] = "--hep"
        argv = ["sh"] + argv
      elif one_command == False:
@@ -245,14 +256,13 @@ class ShellCommand(Command):
  
  def help_string(self, cli, argv0=None):
   cmd_name = argv0 or (self.argv[0] if self.argv else "")
-  program_help = not cmd_name
   cmd = self.__class__(cli)
   cmd.argv = [cmd_name, "--help"]
-  cmd.want_help = program_help
-  if not program_help:
+  cmd.__is_shell = self.__is_shell and argv0
+  if cmd.__is_shell:
    cmd.usage = None
   for i in cmd._parse_args(cli):
    pass
-  if not program_help:
+  if cmd.__is_shell:
    cmd.arg_parser.description = cmd.__doc__
   return cmd.arg_parser.format_help()
