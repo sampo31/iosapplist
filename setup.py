@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 setup(
  name="iosapplist",
- version="3.0.dev20",
+ version="3.0.dev21",
  description="Lists installed iOS App Store apps.",
  url="http://code.s.zeid.me/iosapplist",
  author="Scott Zeid",
