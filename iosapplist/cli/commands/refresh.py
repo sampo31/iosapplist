@@ -43,7 +43,7 @@ class RefreshListCommand(Command):
  """Refreshes the app list.  (Only useful in the interactive shell.)"""
  names = ["refresh", "reload"]
  add_args = False
- sort_group = float("-inf")
+ sort_group = -4
  
  def main(self, cli):
   debug("re-populating the app list cache")
