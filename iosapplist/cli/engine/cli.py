@@ -101,8 +101,8 @@ def make_CLI_class():
      if argv0:
       raise CLIError("%s is not a valid command" % argv0)
      else:
-      cmd = self.commands["command"]
-      argv = ["command", "--help"]
+      cmd = self.commands["shell"]
+      argv = ["sh", "--help"]
    debug("running", argv)
    generator = cmd(self).generate_output(argv)
    while True:
