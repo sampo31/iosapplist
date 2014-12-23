@@ -67,7 +67,6 @@ class ShellCommand(Command):
  add_help = False
  description = None
  easter_eggs = False
- #names = ["command", "cmd"]
  sort_group = -2.2
  usage = "[options [...]] [command [args [...]]]"
  
