@@ -72,10 +72,20 @@ def make_CLI_class():
   __metaclass__ = __meta
   
   __output_format = None
+  __started_any = False
   
-  default_command = basestring
+  default_command = None
   description = None
   program = None
+  
+  def start(self, argv):
+   argv0 = "shell" if not self.__started_any else "command"
+   argv = ["" if not self.__started_any else argv0] + argv
+   self.__started_any = True
+   debug("running", argv, "in a new instance")
+   r = self.commands[argv0](self).run(argv)
+   debug("finished running", argv)
+   return r
   
   def __call__(self, argv, default=None.__class__):
    debug("preparing to run", argv)
@@ -94,9 +104,15 @@ def make_CLI_class():
       cmd = self.commands["command"]
       argv = ["command", "--help"]
    debug("running", argv)
-   r = cmd(self).run(argv)
-   debug("finished running", argv)
-   return r
+   generator = cmd(self).generate_output(argv)
+   while True:
+    try:
+     item = generator.next()
+     yield item
+    except StopIteration, exc:
+     debug("finished running", argv)
+     while True:
+      raise exc
  
  return CLI
 

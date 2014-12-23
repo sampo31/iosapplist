@@ -35,7 +35,7 @@ from . import CLI
 
 
 def main(argv=sys.argv):
- return CLI()(["command"] + argv[1:])
+ return CLI().start(argv[1:])
 
 
 if __name__ == "__main__":

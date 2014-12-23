@@ -30,6 +30,8 @@
 
 from __future__ import with_statement
 
+import traceback as traceback_
+
 from command import Command
 
 
@@ -74,6 +76,8 @@ def error(value, human=None):
 
 
 def traceback(value, human=None):
+ if isinstance(value, BaseException):
+  value = traceback_.format_exc()
  return item("traceback", value, human)
 
 

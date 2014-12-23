@@ -38,14 +38,3 @@ __all__ = ["CommandCommand"]
 
 class CommandCommand(CommandCommand):
  easter_eggs = True
- def add_args(self, p, cli):
-  parse_function = super(CommandCommand, self).add_args(p, cli)
-  p.add_argument("--root", "-r", default="", metavar='<path>',
-                 help='The path to the directory containing app containers or'
-                      ' a mobile home directory (defaults to "/var/mobile").')
-  return parse_function
- def main(self, cli):
-  output_generator = super(CommandCommand, self).main(cli)
-  if cli.app_root is None:
-   cli.app_root = self.options.root
-  return output_generator

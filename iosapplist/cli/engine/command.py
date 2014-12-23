@@ -36,6 +36,7 @@ import re
 import string
 import sys
 import traceback
+import types
 
 try:
  import json
@@ -115,6 +116,8 @@ class Command(object):
  sort_group = 0
  usage = None
  
+ argv = None
+ 
  def __init__(self, cli):
   self.return_code = None
   self.stdin  = sys.stdin
@@ -144,15 +147,10 @@ class Command(object):
  def real_output_format(self):
   return self.cli._CLI__output_format or ""
  
- def run(self, argv=[], return_output=False):
-  if self.return_code is not None:
-   raise RuntimeError("this instance has already been executed")
-  
-  self.argv = argv
-  
-  human_output = {"normal": self.stdout, "error": self.stderr, "traceback": self.stderr}
-  robot_output = dict(cmd=self.argv[0], success=None, return_code=None,
-                      output={"normal": [], "error": [], "traceback": []})
+ def generate_output(self, argv=None):
+  if argv == None:
+   argv = self.argv or []
+  self.argv = argv[:]
   
   output_generators = (
    (self._parse_args, "_parse_args"),
@@ -165,14 +163,11 @@ class Command(object):
    while True:
     try:
      item = output_iterator.next()
-     value = item.value
-     if self.is_robot or return_output:
-      robot_output["output"][item.type] += [value]
+     if isinstance(item, types.GeneratorType):
+      while True:
+       yield item.next()
      else:
-      if isinstance(value, dict):
-       if isinstance(item.human, basestring):
-        value = Template(item.human).safe_substitute(value)
-      safe_print(value, human_output[item.type])
+      yield item
      if self.return_code != None and not isinstance(output_iterator, (list, tuple)):
       break
     except StopIteration, exc:
@@ -184,21 +179,37 @@ class Command(object):
      break
     except Exception, exc:
      tb = traceback.format_exc()
-     if self.is_robot or return_output:
-      robot_output["output"]["traceback"] += [tb]
-     else:
-      self.stderr.write(tb)
-      if not tb.endswith("\n"):
-       self.stderr.write(tb)
-      self.stderr.flush()
-     del tb
+     yield output.traceback(tb)
      break
    if self.return_code != None:
     debug("stopping output with code:", self.return_code) 
-    break
+    raise StopIteration(self.return_code)
+
+ def run(self, argv=None, return_output=False):
+  if self.return_code is not None:
+   raise RuntimeError("this instance has already been executed")
+  
+  if argv == None:
+   argv = self.argv or []
+  
+  human_output = {"normal": self.stdout, "error": self.stderr, "traceback": self.stderr}
+  robot_output = dict(cmd=argv[0], success=None, return_code=None,
+                      output={"normal": [], "error": [], "traceback": []})
+  
+  for item in self.generate_output(argv):
+   value = item.value
+   if self.is_robot or return_output:
+    robot_output["output"][item.type] += [value]
+   else:
+    if isinstance(value, dict):
+     if isinstance(item.human, basestring):
+      value = Template(item.human).safe_substitute(value)
+    safe_print(value, human_output[item.type])
   
   if self.return_code is None:
    self.return_code = 127
+  
+  robot_output["cmd"] = self.argv[0]
   
   if self.is_robot or return_output:
    robot_output["return_code"] = self.return_code

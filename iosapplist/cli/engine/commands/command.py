@@ -44,132 +44,56 @@ __all__ = ["CommandCommand"]
 class CommandCommand(Command):
  """Runs a command."""
  
- add_help = False
- description = None
- easter_eggs = False
  names = ["command", "cmd"]
+ add_help = False
+ easter_eggs = False
  sort_group = float("-inf")
  usage = "[options [...]] [command [args [...]]]"
  want_help = False
  
- __is_easter_egg = False
- __robot_easter_egg_triggers = ("true", "yes", "on", "y", "1")
-
+ __use_real_output_format = True
+ 
  @property
  def output_format(self):
-  options = getattr(self, "options", None)
-  if getattr(options, "help", False) or self.__is_easter_egg:
-   cmd_name = self.extra[0] if self.extra else None
-   if not (cmd_name and cmd_name not in self.names):
-    robot = getattr(options, "robot", "")
-    if robot not in self.__robot_easter_egg_triggers:
-     return robot
-    else:
-     return self.real_output_format
-  return ""
+  return self.real_output_format if self.__use_real_output_format else ""
  
  def add_args(self, p, cli):
-  p.usage = self.usage
-  p.description = self.description or cli.description
-  p.add_argument("--help", "-h", action="store_true",
-                 help='Shows help about the program or a command.')
-  if self.easter_eggs:
-   p.add_argument("--hep", action="store_true", help=argparse.SUPPRESS)
-  p.add_argument("--robot", default="", metavar='<format>',
-                 help='Produce output suitable for robots.'
-                      '  Format should be "plist" or "json".')
-  p.formatter_class = argparse.RawDescriptionHelpFormatter
   if self.want_help:
-   p.epilog = "commands"
-   if cli.default_command:
-    p.epilog += " (default is `%s`)" % cli.default_command
-   p.epilog += ":"
-   sort_group = n = 0
-   for cmd in cli.commands:
-    if cmd.show_in_help:
-     names = cmd.names if not cmd.names_are_aliases else (cmd.names,)
-     for name in names:
-      name = name if isinstance(name, (list, tuple)) else (name,)
-      if n and cmd.sort_group < 0 and sort_group >= 0:
-       p.epilog += "\n"
-      if n and cmd.sort_group == float("-inf") and sort_group != float("-inf"):
-       p.epilog += "\n"
-      sort_group = cmd.sort_group
-      
-      p.epilog += "\n  "
-      if len(name) > 1:
-       p.epilog += "{%s}" % ", ".join(name)
-      else:
-       p.epilog += name[0]
-      if cmd.usage:
-       p.epilog += " " + cmd.usage
-      if cmd.description:
-       if callable(cmd.description):
-        p.epilog += "\n    " + cmd.description(name[0])
-       else:
-        p.epilog += "\n    " + cmd.description
-      elif cmd.__doc__:
-       p.epilog += "\n    " + cmd.__doc__.split("\n", 1)[0]
-      n += 1
+   p.add_argument("--help", "-h", action="store_true",
+                  help='show this help message and exit')
   return p.parse_known_args
  
  def main(self, cli):
-  if cli._CLI__output_format is None:
-   if self.options.robot not in self.__robot_easter_egg_triggers:
-    cli._CLI__output_format = self.options.robot
-  
-  if self.easter_eggs:
-   if self.options.robot.lower() in self.__robot_easter_egg_triggers:
-    self.__is_easter_egg = True
-    yield output.normal("I AM ROBOT")
-    yield output.normal("HEAR ME ROAR")
-    raise StopIteration(0)
-   if self.options.hep:
-    self.__is_easter_egg = True
+  if len(self.args) == 1:
+   arg = self.args[0]
+   if self.easter_eggs and arg == "hep":
+    self.__use_real_output_format = True
     yield output.normal("Hep!  Hep!  I'm covered in sawlder! ... Eh?  Nobody comes.")
     yield output.normal("--Red Green, https://www.youtube.com/watch?v=qVeQWtVzkAQ#t=6m27s")
     raise StopIteration(0)
-  
-  try:
-   if self.options.help:
-    cmd_name = self.extra[0] if self.extra else None
-    if cmd_name and cmd_name not in self.names:
-     cmd = cli.commands.get(cmd_name, None)
-     if cmd:
-      if cmd.add_args:
-       raise StopIteration(cli([cmd_name, "--help"]))
-      else:
-       usage = "usage: %s %s" % (cli.program, cmd_name)
-       if cmd.usage:
-        usage += " " + cmd.usage
-       description = None
-       if cmd.description:
-        if callable(cmd.description):
-         description = cmd.description(cmd.argv[0])
-        else:
-         description = cmd.description
-       if not description:
-        description = cmd.__doc__
-       if description:
-        usage += "\n\n" + description
-       usage += "\n"
-       output.OutputCommand(cli).run([self.argv[0], "0", usage])
-       raise StopIteration(0)
-     else:
-      raise CLIError("%s is not a valid command" % cmd_name)
-    else:
+   if arg in ("-h", "--help"):
+    self.__use_real_output_format = True
+    try:
+     cmd_name = self.argv[0] if self.argv else ""
      cmd = self.__class__(cli)
      cmd.argv = [cmd_name, "--help"]
-     cmd.want_help = True
+     cmd.want_help = cmd_name not in self.names
      for i in cmd._parse_args(cli):
       pass
      if cmd_name in self.names:
-      self.arg_parser.description = cmd.__doc__
+      cmd.arg_parser.description = cmd.__doc__
      yield output.normal(cmd.arg_parser.format_help())
      raise StopIteration(0)
-   else:
-    raise StopIteration(cli(self.extra))
+    except CLIError, exc:
+     message = "%s: error: %s" % (cli.program, str(exc))
+     yield output.error(message)
+     raise StopIteration(2)
+  
+  try:
+   cmd_name = self.extra[0] if self.extra else None
+   self.argv[0] = cmd_name or self.argv[0]
+   yield cli(self.extra)
   except CLIError, exc:
    message = "%s: error: %s" % (cli.program, str(exc))
-   output.OutputCommand(cli).run([self.argv[0], "2", "", message])
+   yield output.error(message)
    raise StopIteration(2)

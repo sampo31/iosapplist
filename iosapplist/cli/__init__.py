@@ -44,7 +44,7 @@ from engine import CLI, CLIError, Command, output, debug
 
 
 __all__  = ["CLI", "CLIError", "Command", "output"]
-__all__ += ["CommandCommand", "main"]  # imported at the bottom of the file
+__all__ += ["ShellCommand", "main"]  # imported at the bottom of the file
 
 
 class CLI(CLI):
@@ -68,6 +68,6 @@ import commands
 CLI.commands.register(commands)
 
 
-from commands.command import CommandCommand
+from commands.shell import ShellCommand
 
 from __main__ import main
