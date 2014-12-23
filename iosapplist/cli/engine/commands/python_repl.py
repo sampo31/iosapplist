@@ -42,10 +42,12 @@ __all__ = ["PythonReplCommand"]
 class PythonReplCommand(Command):
  """Starts an interactive Python prompt with access to an app_list object."""
  names = ["python-repl", "python", "repl"]
- add_args = False
  preamble = ""
  ps1 = getattr(sys, "ps1", None) or ">>> "
  sort_group = -2
+
+ def add_args(self, p, cli):
+  return
  
  def main(self, cli):
   def _console_banner():
