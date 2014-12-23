@@ -66,7 +66,6 @@ class ShellCommand(Command):
  names = ["shell", "sh"]
  add_help = False
  description = None
- easter_eggs = None
  sort_group = -2.2
  usage = "[options [...]] [command [args [...]]]"
  

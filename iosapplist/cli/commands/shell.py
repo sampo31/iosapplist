@@ -37,7 +37,6 @@ __all__ = ["ShellCommand"]
 
 
 class ShellCommand(ShellCommand):
- easter_eggs = True
  def add_args(self, p, cli):
   parse_function = super(ShellCommand, self).add_args(p, cli)
   p.add_argument("--root", "-r", default="", metavar='<path>',
