@@ -88,7 +88,6 @@ class Command(object):
       key = max_uint
      else:
       key = max_uint + cls.sort_group
-    print cls.names, key
     cls.__sort_group_key = (key, cls.sort_group)
    return cls.__sort_group_key[0]
   
