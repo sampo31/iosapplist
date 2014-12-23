@@ -154,45 +154,45 @@ class Command(object):
   return self.cli._CLI__output_format or ""
  
  def generate_output(self, argv=None):
-  if argv == None:
-   argv = self.argv or []
-  self.argv = argv[:]
-  
-  output_generators = (
-   (self._parse_args, "_parse_args"),
-   (self.main,        "main")
-  )
-  
-  for output_generator, generator_name in output_generators:
-   debug("iterating through output from", generator_name)
-   output_iterator = output_generator(self.cli)
-   while True:
+  try:
+   if argv == None:
+    argv = self.argv or []
+   self.argv = argv[:]
+   
+   output_generators = (
+    (self._parse_args, "_parse_args"),
+    (self.main,        "main")
+   )
+   
+   for output_generator, generator_name in output_generators:
+    debug("iterating through output from", generator_name)
     try:
-     item = output_iterator.next()
-     if isinstance(item, types.GeneratorType):
-      while True:
-       yield item.next()
-     else:
-      yield item
-     if self.return_code != None and not isinstance(output_iterator, (list, tuple)):
-      break
+     output_iterator = output_generator(self.cli)
+     while True:
+      item = output_iterator.next()
+      if isinstance(item, types.GeneratorType):
+       while True:
+        yield item.next()
+      else:
+       yield item
+      if self.return_code != None and not isinstance(output_iterator, (list, tuple)):
+       break
     except StopIteration, exc:
      if len(exc.args):
       try:
        self.return_code = int(exc.args[0])
       except ValueError:
        self.return_code = 127
-     break
     except SystemExit, exc:
      self.return_code = exc.code
-    except Exception, exc:
-     tb = traceback.format_exc()
-     yield output.traceback(tb)
-     self.return_code = 127
-     break
-   if self.return_code != None:
-    debug("stopping output with code:", self.return_code) 
-    raise StopIteration(self.return_code)
+  except Exception, exc:
+   tb = traceback.format_exc()
+   yield output.traceback(tb)
+   self.return_code = 127
+  
+  if self.return_code != None:
+   debug("stopping output with code:", self.return_code) 
+   raise StopIteration(self.return_code)
 
  def run(self, argv=None, return_output=False):
   if self.return_code is not None:
