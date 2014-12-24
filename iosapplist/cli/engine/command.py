@@ -183,11 +183,13 @@ class Command(object):
        self.return_code = int(exc.args[0])
       except (TypeError, ValueError):
        self.return_code = 127
+      break
     except SystemExit, exc:
      try:
       self.return_code = int(exc.code)
      except (TypeError, ValueError):
       self.return_code = 127
+     break
   except Exception, exc:
    tb = traceback.format_exc()
    yield output.traceback(tb)
@@ -289,5 +291,5 @@ class Command(object):
   
   for item in out:
    yield item
-  if r != None:
+  if r is not None:
    raise StopIteration(r)
