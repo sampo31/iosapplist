@@ -80,10 +80,10 @@ def make_CLI_class():
   program = None
   version = None
   
-  def start(self, argv, default=None.__class__):
+  def start(self, argv, parent_cmd=None, default=None.__class__):
    argv = (["shell"] if not self.__started_any else []) + argv
    debug("running", argv, "in a new instance")
-   cmd, argv = self._lookup(argv, default)
+   cmd, argv = self._lookup(argv, parent_cmd, default)
    if not self.__started_any:
     cmd._ShellCommand__is_shell = False
    self.__started_any = True
@@ -91,8 +91,8 @@ def make_CLI_class():
    debug("finished running", argv)
    return r
   
-  def __call__(self, argv, default=None.__class__):
-   cmd, argv = self._lookup(argv, default)
+  def __call__(self, argv, parent_cmd=None, default=None.__class__):
+   cmd, argv = self._lookup(argv, parent_cmd, default)
    debug("running", argv)
    generator = cmd.generate_output(argv)
    while True:
@@ -104,7 +104,7 @@ def make_CLI_class():
      while True:
       raise exc
   
-  def _lookup(self, argv, default=None.__class__):
+  def _lookup(self, argv, parent_cmd=None, default=None.__class__):
    debug("preparing to run", argv)
    argv0 = argv[0] if len(argv) else None
    cmd = self.commands.get(argv0, None)
@@ -124,6 +124,10 @@ def make_CLI_class():
       cmd = self.commands["shell"]
       argv = ["sh", "--help"]
    cmd = cmd(self)
+   if parent_cmd:
+    cmd.stdin = parent_cmd.stdin
+    cmd.stdout = parent_cmd.stdout
+    cmd.stderr = parent_cmd.stderr
    if doing_help:
     cmd._ShellCommand__is_shell = False
    return cmd, argv
