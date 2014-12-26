@@ -184,28 +184,34 @@ class ShellCommand(Command):
     real_command = True
     try:
      if one_command == False:
-      if null:
-       self.stdout.write("\0")
-       self.stdout.flush()
-       line = array.array('c')
-       while True:
-        char = self.stdin.read(1)
-        if char == "":
-         raise EOFError()
-        elif char != "\0":
-         line.fromstring(char)
-        else:
-         break
-       line = line.tostring()
-      else:
-       self.stdout.write(ps1 if not build else "")
-       self.stdout.flush()
-       if self.stdin == sys.stdin:
-        line = raw_input()
+      try:
+       if null:
+        self.stdout.write("\0")
+        self.stdout.flush()
+        line = array.array('c')
+        while True:
+         char = self.stdin.read(1)
+         if char == "":
+          raise EOFError()
+         elif char != "\0":
+          line.fromstring(char)
+         else:
+          break
+        line = line.tostring()
        else:
-	line = self.stdin.readline()
-	if line.endswith("\n"):
-	 line = line[:-1]
+        self.stdout.write(ps1 if not build else "")
+        self.stdout.flush()
+        if self.stdin == sys.stdin:
+         line = raw_input()
+        else:
+         line = self.stdin.readline()
+         if line.endswith("\n"):
+          line = line[:-1]
+      except EOFError:
+       raise
+      except:
+       one_command = True  # make the main loop break
+       raise
      if one_command != False:
       argv = one_command
      elif self.real_output_format == "plist":
