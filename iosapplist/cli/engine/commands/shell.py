@@ -236,19 +236,19 @@ class ShellCommand(Command):
        if argv[0] == "help":
         real_command = False
         message = self.help_string(cli, True)
-        output.OutputCommand(cli).run([self.argv[0], "0", message])
+        self.cmd(output.OutputCommand).run([self.argv[0], "0", message])
        if self.easter_eggs and argv[0] == "hep":
         argv[0] = "--hep"
         argv = ["sh"] + argv
        if argv[0] == "version":
         real_command = False
         message = self.version_string(cli)
-        output.OutputCommand(cli).run([self.argv[0], "0", message])
+        self.cmd(output.OutputCommand).run([self.argv[0], "0", message])
      elif not len(argv) and one_command == False:
       continue
      r = 127
      if real_command:
-      r = cli.start(argv, default=(None if self.__is_shell else None.__class__))
+      r = cli.start(argv, self, default=(None if self.__is_shell else None.__class__))
      if one_command != False:
       if real_command:
        raise StopIteration(r)
@@ -259,7 +259,7 @@ class ShellCommand(Command):
      break
     except CLIError, exc:
      message = self.format_cli_error(cli, exc)
-     output.OutputCommand(cli).run([self.argv[0], "2", "", message])
+     self.cmd(output.OutputCommand).run([self.argv[0], "2", "", message])
      if one_command != False:
       raise StopIteration(2)
     except StopIteration:
@@ -267,7 +267,7 @@ class ShellCommand(Command):
     except Exception, exc:
      tb = traceback.format_exc()
      try:
-      output.OutputCommand(cli).run([self.argv[0], "127", "", "", tb])
+      self.cmd(output.OutputCommand).run([self.argv[0], "127", "", "", tb])
      except:
       pass
      if one_command != False:
@@ -278,6 +278,16 @@ class ShellCommand(Command):
    raise StopIteration(2)
   except StopIteration:
    raise
+ 
+ def cmd(self, x):
+  if isinstance(x, basestring):
+   x = self.cli.commands[x]
+  if issubclass(x, Command):
+   x = x(self.cli)
+   x.stdin = self.stdin
+   x.stdout = self.stdout
+   x.stderr = self.stderr
+  return x
  
  def format_cli_error(self, cli, exc):
   argv0 = self.argv[0] if self.__is_shell else cli.program
