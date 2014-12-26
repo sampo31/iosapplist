@@ -185,11 +185,11 @@ class ShellCommand(Command):
     try:
      if one_command == False:
       if null:
-       sys.stdout.write("\0")
-       sys.stdout.flush()
+       self.stdout.write("\0")
+       self.stdout.flush()
        line = array.array('c')
        while True:
-        char = sys.stdin.read(1)
+        char = self.stdin.read(1)
         if char == "":
          raise EOFError()
         elif char != "\0":
@@ -198,7 +198,14 @@ class ShellCommand(Command):
          break
        line = line.tostring()
       else:
-       line = raw_input(ps1 if not build else "")
+       self.stdout.write(ps1 if not build else "")
+       self.stdout.flush()
+       if self.stdin == sys.stdin:
+        line = raw_input()
+       else:
+	line = self.stdin.readline()
+	if line.endswith("\n"):
+	 line = line[:-1]
      if one_command != False:
       argv = one_command
      elif self.real_output_format == "plist":
