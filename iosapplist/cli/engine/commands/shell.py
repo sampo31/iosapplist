@@ -32,6 +32,7 @@ from __future__ import with_statement
 
 import argparse
 import array
+import errno
 import math
 import plistlib
 import re
@@ -265,6 +266,9 @@ class ShellCommand(Command):
     except StopIteration:
      raise
     except Exception, exc:
+     if isinstance(exc, IOError) and exc.errno == errno.EPIPE:
+      raise StopIteration(0)
+      break
      tb = traceback.format_exc()
      try:
       self.cmd(output.OutputCommand).run([self.argv[0], "127", "", "", tb])
