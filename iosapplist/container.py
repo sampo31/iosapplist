@@ -81,7 +81,7 @@ have their normal values, depending on the mood of the iOS developers.
  
  def __init__(self, path):
   """Loads the container's info.  path is the path to the container."""
-  self.path      = os.path.abspath(path)
+  self.path      = to_unicode(os.path.abspath(path))
   self.uuid      = os.path.basename(self.path).upper()
   self.plist     = os.path.join(self.path, CONTAINER_METADATA_PLIST)
   self.class_    = self.class_raw = None
