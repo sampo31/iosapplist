@@ -221,7 +221,7 @@ apps.
       index_by_uuid.pop(data_uuid, None)
      continue
    apps = [app for app in apps if app]
-  else:
+  else:  # root.min_ios < 8
    for container_dir_base in os.listdir(root.legacy_root):
     try:
      container = Container(os.path.join(root.legacy_root, container_dir_base))
