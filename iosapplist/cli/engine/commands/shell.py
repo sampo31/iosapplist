@@ -225,7 +225,7 @@ class ShellCommand(Command):
         build = ""
        else:
         continue
-     elif self.real_output_format == "json":
+     elif self.real_output_format in ("json", "python-repr"):
       argv = json.loads(line)
      else:
       argv = shlex.split(line)

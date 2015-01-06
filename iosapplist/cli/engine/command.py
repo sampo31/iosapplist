@@ -233,6 +233,8 @@ class Command(object):
      print >> self.stdout, plistlib.writePlistToString(robot_output)
     elif self.output_format == "json":
      print >> self.stdout, json.dumps(robot_output)
+    elif self.output_format == "python-repr":
+     print >> self.stdout, repr(robot_output)
     else:
      raise ValueError("bad output format %s" % repr(self.output_format))
   
