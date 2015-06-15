@@ -122,6 +122,7 @@ class Command(object):
  
  def __init__(self, cli):
   self.return_code = None
+  self.robot_output = None
   self.stdin  = sys.stdin
   self.stdout = sys.stdout
   self.stderr = sys.stderr
@@ -200,7 +201,7 @@ class Command(object):
    raise StopIteration(self.return_code)
 
  def run(self, argv=None, return_output=False):
-  if self.return_code is not None:
+  if self.return_code is not None or self.robot_output is not None:
    raise RuntimeError("this instance has already been executed")
   
   if argv == None:
@@ -225,9 +226,11 @@ class Command(object):
   
   robot_output["cmd"] = self.argv[0]
   
+  robot_output["return_code"] = self.return_code
+  robot_output["success"] = self.return_code == 0
+  self.robot_output = robot_output
+  
   if self.is_robot or return_output:
-   robot_output["return_code"] = self.return_code
-   robot_output["success"] = self.return_code == 0
    if not return_output:
     if self.output_format == "plist":
      print >> self.stdout, plistlib.writePlistToString(robot_output)
