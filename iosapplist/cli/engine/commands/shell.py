@@ -1,7 +1,7 @@
 # iosapplist
 # A Python package that lists iOS App Store apps.  (Formerly part of AppBackup.)
 #
-# Copyright (C) 2008-2014 Scott Zeid
+# Copyright (C) 2008-2015 Scott Zeid
 # https://s.zeid.me/projects/appbackup/
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
