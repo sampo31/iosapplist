@@ -99,6 +99,8 @@ class ShellCommand(Command):
                   help='Prompt for and terminate shell input with a null byte'
                        ' instead of, respectively, ps1 and a newline.  Useful'
                        ' in conjunction with --robot.')
+   p.add_argument("--tracebacks-to-stderr", action="store_true",
+                  help='Also echo tracebacks to standard error.')
   p.add_argument("--robot", default="", metavar='<format>',
                  help='Produce output suitable for robots.'
                       '  Format should be "plist" or "json".')
@@ -160,6 +162,7 @@ class ShellCommand(Command):
   
   null = getattr(self.options, "null", False)
   ps1 = getattr(self.options, "ps1", "")
+  tracebacks_to_stderr = getattr(self.options, "tracebacks_to_stderr", False)
   self.__use_real_output_format = False
   try:
    ps1 = "\0" if null else ps1
@@ -249,7 +252,13 @@ class ShellCommand(Command):
       continue
      r = 127
      if real_command:
-      r = cli.start(argv, self, default=(None if self.__is_shell else None.__class__))
+      r, cmd = cli.start(argv, self, default=(None if self.__is_shell else None.__class__),
+                         verbose_return=True)
+      if tracebacks_to_stderr and cmd.robot_output:
+       tbs = cmd.robot_output.get("output", {}).get("traceback", [])
+       if tbs:
+        for i in tbs:
+         print >> self.stderr, i
      if one_command != False:
       if real_command:
        raise StopIteration(r)
@@ -274,6 +283,8 @@ class ShellCommand(Command):
       self.cmd(output.OutputCommand).run([self.argv[0], "127", "", "", tb])
      except:
       pass
+     if tracebacks_to_stderr:
+      print >> self.stderr, tb
      if one_command != False:
       raise StopIteration(127)
    raise StopIteration(0)
