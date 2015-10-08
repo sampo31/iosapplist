@@ -1,7 +1,7 @@
 # iosapplist
 # A Python package that lists iOS App Store apps.  (Formerly part of AppBackup.)
 #
-# Copyright (C) 2008-2014 Scott Zeid
+# Copyright (C) 2008-2015 Scott Zeid
 # https://s.zeid.me/projects/appbackup/
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -80,7 +80,8 @@ def make_CLI_class():
   program = None
   version = None
   
-  def start(self, argv, parent_cmd=None, default=None.__class__):
+  def start(self, argv, parent_cmd=None, default=None.__class__,
+            verbose_return=False):
    argv = (["shell"] if not self.__started_any else []) + argv
    debug("running", argv, "in a new instance")
    cmd, argv = self._lookup(argv, parent_cmd, default)
@@ -89,6 +90,8 @@ def make_CLI_class():
    self.__started_any = True
    r = cmd.run(argv)
    debug("finished running", argv)
+   if verbose_return:
+    return r, cmd
    return r
   
   def __call__(self, argv, parent_cmd=None, default=None.__class__):

@@ -1,7 +1,7 @@
 # iosapplist
 # A Python package that lists iOS App Store apps.  (Formerly part of AppBackup.)
 #
-# Copyright (C) 2008-2014 Scott Zeid
+# Copyright (C) 2008-2015 Scott Zeid
 # https://s.zeid.me/projects/appbackup/
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -32,7 +32,7 @@
 from __future__ import with_statement
 
 __author__  = "Scott Zeid <s@zeid.me>"
-__version__ = "3.0.dev29"
+__version__ = "3.0.dev30"
 
 codename    = "Maserati"  # git push all maserati
 
